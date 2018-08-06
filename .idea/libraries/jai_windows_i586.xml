@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="jai_windows-i586">
+    <CLASSES>
+      <root url="jar://C:/Program Files/Java/jdk-9.0.4/jai_windows-i586.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="jar://C:/Program Files/Java/jdk-9.0.4/jai_windows-i586.jar!/" recursive="false" />
+  </library>
+</component>
