@@ -426,8 +426,7 @@ public class ProjectInfoWindow {
             genConPhone = gcPhoneField.getText();
             imgPath = imagePath.getText();
             if(dateCheck.isSelected()){date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));}
-            if(volumeCheck.isSelected()){volume = volumeText.getText();}
-            System.out.println(volumeCheck.isSelected());
+            if(volumeCheck.isSelected()){volume = volumeText.getText();} else {volume = "";}
 
             String[] savedInfo = new String[14];
             savedInfo[0] = pnField.getText();
@@ -442,11 +441,8 @@ public class ProjectInfoWindow {
             savedInfo[9] = gAdd2.getText();
             savedInfo[10] = gcPhoneField.getText();
             savedInfo[11] = imagePath.getText();
-            System.out.println("!" + savedInfo[11]);
             savedInfo[12] = date;
-            System.out.println(savedInfo[12]);
             savedInfo[13] = volume;
-            System.out.println(savedInfo[13]);
 
             saveProjectInfo(savedInfo);
 
