@@ -1,7 +1,7 @@
 <component name="libraryTable">
-  <library name="JPEGOptimizer">
+  <library name="poiMerge">
     <CLASSES>
-      <root url="jar://C:/Program Files/Java/jdk-9.0.4/JPEGOptimizer.jar!/" />
+      <root url="jar://C:/Program Files/Java/jdk-9.0.4/poi-3.17/poiMerge.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES />

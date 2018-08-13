@@ -8,22 +8,19 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="xmlbeans-2.6.0" level="project" />
-    <orderEntry type="library" name="poi-3" level="project" />
-    <orderEntry type="library" name="poi-ooxml-schemas-3.17" level="project" />
     <orderEntry type="library" name="commons-io-2" level="project" />
-    <orderEntry type="library" name="ooxml-schemas-1.1" level="project" />
     <orderEntry type="library" name="commons-logging-1" level="project" />
     <orderEntry type="library" name="pdfbox-2.0.9" level="project" />
     <orderEntry type="library" name="fontbox-2.0.9" level="project" />
     <orderEntry type="library" name="pdfbox-tools-2.0.9" level="project" />
     <orderEntry type="library" name="jai_windows-i586" level="project" />
     <orderEntry type="library" name="jbig2-imageio-3.0.0" level="project" />
-    <orderEntry type="library" name="JPEGOptimizer" level="project" />
     <orderEntry type="library" name="javaocr-core-1.0" level="project" />
     <orderEntry type="library" name="javaocr-plugin-awt-1.0" level="project" />
     <orderEntry type="library" name="javaocr-plugin-cluster-1.0" level="project" />
     <orderEntry type="library" name="javaocr-plugin-fir-1.0" level="project" />
     <orderEntry type="library" name="javaocr-plugin-moment-1.0" level="project" />
     <orderEntry type="library" name="javaocr-plugin-morphology-1.0" level="project" />
+    <orderEntry type="library" exported="" name="poiMerge" level="project" />
   </component>
 </module>

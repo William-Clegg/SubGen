@@ -1,6 +1,5 @@
 package com.company;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.rendering.ImageType;
@@ -633,15 +632,11 @@ public class SubmittalProcessing {
                                         writer.write(null, new IIOImage(newJpg, null, null), jpegParams);
                                         picRun.addPicture(new FileInputStream("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\tempImages\\imgFile" + j + k + ".jpg"), XWPFDocument.PICTURE_TYPE_JPEG, subSheets.get(j), Units.toEMU(610), Units.toEMU(770));
                                     }
-
                                 }
-
-
                             } catch (Exception notFile) {
                                 System.err.println(notFile);
                             }
                         }
-
                     }
                     subNumber = 0;
                     list.clear();
@@ -760,14 +755,14 @@ public class SubmittalProcessing {
         SubGenApp.window.close();
 
         File tempFolder = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\tempImages");
-        File ocrTempFolder = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\ocrTempImages");
+        //File ocrTempFolder = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\ocrTempImages");
 
-        try {
-            FileUtils.cleanDirectory(tempFolder);
-            FileUtils.cleanDirectory(ocrTempFolder);
-        } catch (IOException noFolder) {
-            System.err.println(noFolder);
+        File[] files = tempFolder.listFiles();
+        for(File it: files) {
+            it.delete();
         }
+        //FileUtils.cleanDirectory(ocrTempFolder);
+
 
 
     }
