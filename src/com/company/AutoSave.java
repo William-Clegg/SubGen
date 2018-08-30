@@ -64,6 +64,53 @@ public class AutoSave extends ProjectInfoWindow{
     }
 
 
+    /*---------------------------------------------------------------------------
+     *  Method used to load a default image.
+     */
+
+    public static String loadDefaultimage() {
+
+        try {
+            FileInputStream fis = new FileInputStream("DefaultImage");  //throws exception first time, change
+            ObjectInputStream ois = new ObjectInputStream(fis);
+            String imagePath = (String) ois.readObject();
+            ois.close();
+            if(imagePath != null) {
+                return imagePath;
+            } else {
+                return "";
+            }
+
+        } catch (FileNotFoundException savedInfoE) {
+            savedInfoE.printStackTrace();
+        } catch (IOException savedInfoE) {
+            savedInfoE.printStackTrace();
+        } catch (ClassNotFoundException savedInfoE) {
+            savedInfoE.printStackTrace();
+        }
+        return "";
+    }
+
+
+    /*---------------------------------------------------------------------------
+     *  Method used to save a default image.
+     */
+
+    public static void saveDefaultimage(String filePath) {
+
+        try {
+            File saveInfo = new File("DefaultImage");
+            FileOutputStream fos = new FileOutputStream(saveInfo);
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(filePath);
+            oos.close();
+
+        } catch (FileNotFoundException savedInfoE) {
+            savedInfoE.printStackTrace();
+        } catch (IOException savedInfoE) {
+            savedInfoE.printStackTrace();
+        }
+    }
 
 
     /*---------------------------------------------------------------------------

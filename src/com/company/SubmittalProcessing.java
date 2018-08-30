@@ -374,7 +374,6 @@ public class SubmittalProcessing {
                 }
             }
         }
-
         String file;
         int slashIndex;
         int dotIndex;
@@ -443,17 +442,20 @@ public class SubmittalProcessing {
                                         String sourceDir;
                                         sourceDir = subSheets.get(j).substring(4);
 
+                                        System.out.println("the filepath about to be added " + sourceDir);
                                         File sourceFile = new File(sourceDir);
 
                                         if (sourceFile.exists()) {
 
                                             PDDocument document = PDDocument.load(new File(sourceDir));
+                                            System.out.println("sourceDir just assigned to document");
                                             PDFRenderer pdfRenderer = new PDFRenderer(document);
-                                            @SuppressWarnings("unchecked")
+                                            System.out.println("document just rendered");
+                                            //@SuppressWarnings("unchecked")
                                             String fileName = sourceFile.getName().replace(".pdf", "");
                                             int pageNumber = 0;
                                             int totalPages = document.getNumberOfPages();
-                                            for (PDPage page : document.getPages()) {
+                                            for (int k = 0; k < totalPages; k++) {
                                                 System.out.println("Processing page " + (pageNumber+1) + " of " + totalPages + " / " + fileName);
                                                 BufferedImage image = pdfRenderer.renderImageWithDPI(pageNumber, 190, ImageType.RGB);
                                                 XWPFParagraph p11 = doc.createParagraph();
@@ -475,9 +477,11 @@ public class SubmittalProcessing {
                                                 jpegParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
                                                 jpegParams.setCompressionQuality(1f);
 
-                                                writer.setOutput(new FileImageOutputStream(
-                                                        new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\tempImages\\imgFile" + j + pageNumber + ".jpg")));
 
+                                                FileImageOutputStream fos = new FileImageOutputStream(
+                                                        new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\tempImages\\imgFile" + j + pageNumber + ".jpg"));
+
+                                                writer.setOutput(fos);
 
                                                 int w = image.getWidth();
                                                 int h = image.getHeight();
@@ -490,8 +494,9 @@ public class SubmittalProcessing {
                                                 FileInputStream inputStream = new FileInputStream(picFile);
 
                                                 picRun.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_JPEG, subSheets.get(j), Units.toEMU(610), Units.toEMU(770));
-                                                inputStream.close();
                                                 writer.reset();
+                                                inputStream.close();
+                                                fos.close();
                                                 pageNumber++;
                                             }
                                             document.close();
@@ -510,6 +515,7 @@ public class SubmittalProcessing {
                                         String sourceDir;
                                         sourceDir = subSheets.get(j).substring(4);
                                         File sourceFile = new File(sourceDir);
+                                        System.out.println("the filepath about to be added " + sourceDir);
 
                                         if (sourceFile.exists()) {
 
@@ -591,6 +597,7 @@ public class SubmittalProcessing {
                                 } else {
 
                                     XWPFDocument subDoc = new XWPFDocument(new FileInputStream(subSheets.get(j).substring(4)));
+                                    System.out.println("the filepath about to be added " + subSheets.get(j).substring(4));
                                     List<XWPFPictureData> pic = subDoc.getAllPictures();
 
                                     for (int k = 0; k < pic.size(); k++) {
@@ -743,11 +750,16 @@ public class SubmittalProcessing {
         try {
             FileOutputStream out;
             if(volume.equals("")) {
-                out = new FileOutputStream("Saves\\" + job + "\\submittalOutput.docx");
+                out = new FileOutputStream("Saves\\" + job + "\\" + job + " Submittal.docx");
             } else {
-                out = new FileOutputStream("Saves\\" + job + "\\" + volume + "\\" + job + " " + volume + ".docx");
+                File volumeFolder = new File("Saves\\" + job + "\\" + volume);
+                if(!volumeFolder.exists()) {
+                    volumeFolder.mkdirs();
+                }
+                out = new FileOutputStream("Saves\\" + job + "\\" + volume + "\\" + job + " " + volume + " Submittal.docx");
             }
             doc.write(out);
+            doc.close();
         } catch (Exception f) {
             System.err.println();
         }

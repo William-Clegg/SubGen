@@ -1,19 +1,10 @@
 package OCR;
 
-import net.sourceforge.javaocr.ocrPlugins.mseOCR.OCRScanner;
-import net.sourceforge.javaocr.scanner.PixelImage;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.rendering.ImageType;
 import org.apache.pdfbox.rendering.PDFRenderer;
 import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.tools.imageio.ImageIOUtil;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.File;
-import java.io.IOException;
-import java.util.List;
 
 import static com.company.SubGenApp.southernList;
 import static com.company.SubGenApp.southernListIndex;

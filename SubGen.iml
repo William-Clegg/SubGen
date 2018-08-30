@@ -22,5 +22,6 @@
     <orderEntry type="library" name="javaocr-plugin-moment-1.0" level="project" />
     <orderEntry type="library" name="javaocr-plugin-morphology-1.0" level="project" />
     <orderEntry type="library" exported="" name="poiMerge" level="project" />
+    <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
   </component>
 </module>

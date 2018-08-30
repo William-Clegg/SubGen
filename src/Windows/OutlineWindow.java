@@ -1,8 +1,10 @@
 package Windows;
 
+import com.company.CustomTreeCell;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
+import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
@@ -10,12 +12,18 @@ import javafx.scene.layout.*;
 
 import com.company.FileCell;
 import com.company.SubGenApp;
+
+import java.io.File;
+
 import static com.company.AutoSave.listAddSave;
 import static com.company.AutoSave.listDeleteSave;
 import static com.company.SubGenApp.*;
 import static com.company.SubmittalProcessing.createSubmittal;
 
 public class OutlineWindow {
+
+    private static TreeItem<String> root;
+    private static TreeView<String> treeView;
 
     public static GridPane outlineGrid() {
 
@@ -42,9 +50,13 @@ public class OutlineWindow {
         grid.setGridLinesVisible(false);
         grid.setPadding(new Insets(25, 25, 50, 50));
 
+        root = new TreeItem<>("Submittal");
+        root.setExpanded(true);
+        treeView = new TreeView<String>(root);
+        treeView.setCellFactory(param -> new CustomTreeCell());
         ListView<String> fileListView = new ListView<>(subSheets);
-        fileListView.setCellFactory(param -> new FileCell());
-        grid.add(fileListView, 0, 0, 3, 11);
+        //fileListView.setCellFactory(param -> new FileCell());
+        grid.add(treeView, 0, 0, 3, 11);
 
         Label title = new Label();
         title.setText("Categories");
@@ -68,7 +80,7 @@ public class OutlineWindow {
         mainCatField.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
-                if(keyEvent.getCode() == KeyCode.ENTER){addMainCategory(mainCatField);}
+                if(keyEvent.getCode() == KeyCode.ENTER){addMainCategory(mainCatField); mainCatField.clear();}
             }
         });
 
@@ -91,7 +103,7 @@ public class OutlineWindow {
         subCatField.setOnKeyPressed(new EventHandler<KeyEvent>() {
             @Override
             public void handle(KeyEvent keyEvent) {
-                if(keyEvent.getCode() == KeyCode.ENTER) {addSubCategory(subCatField); }
+                if(keyEvent.getCode() == KeyCode.ENTER) {addSubCategory(subCatField); subCatField.clear();}
             }
         });
 
@@ -105,15 +117,15 @@ public class OutlineWindow {
         deleteBtn.getChildren().add(delete);
         grid.add(deleteBtn, 3, 7);
 
-        fileListView.setOnMouseClicked(new EventHandler<MouseEvent>() {
+        treeView.setOnMouseClicked(new EventHandler<MouseEvent>() {
             @Override
             public void handle(MouseEvent event) {
-                if (event.getClickCount() == 2 && !fileListView.getSelectionModel().getSelectedItems().isEmpty()) {
-                    deleteItem(fileListView);
+                if (event.getClickCount() == 2) {
+                    //deleteItem();
                 }
             }
         });
-        delete.setOnAction(e -> { if (!fileListView.getSelectionModel().getSelectedItems().isEmpty()) { deleteItem(fileListView); }});
+        delete.setOnAction(e -> deleteItem());
 
         /*-----------------------------------------------------------------------------------
          *  Adding button to initial submittal generation. Found in SubmittalProcessing.java.
@@ -139,12 +151,25 @@ public class OutlineWindow {
             subSheets.add(mainCatField.getText());
             System.out.println(subSheets);
             listAddSave();
+
+            TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
+            TreeItem<String> newItem = new TreeItem<>(mainCatField.getText());
+            newItem.setExpanded(true);
+            if(selectedItem != null && selectedItem.getParent() != null) {
+                if (selectedItem.getParent().getValue().equals("Submittal")) {
+                    selectedItem.getParent().getChildren().add(selectedItem.getParent().getChildren().indexOf(selectedItem), newItem);
+                } else {
+                    root.getChildren().add(newItem);
+                }
+            } else {
+                root.getChildren().add(newItem);
+            }
         }
     }
 
     private static void addSubCategory(TextField subCatField) {
         String category;
-        if (!subCatField.getText().isEmpty()) {
+        if (!subCatField.getText().isEmpty() && root.getChildren().size() != 0) {
             category = "  " + subCatField.getText();
             if(subSheets.contains(category)) {
                 do{
@@ -154,12 +179,29 @@ public class OutlineWindow {
             subSheets.add(category);
             System.out.println(subSheets);
             listAddSave();
+
+            TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
+            TreeItem<String> newItem = new TreeItem<>(subCatField.getText());
+            newItem.setExpanded(true);
+
+            if(selectedItem != null && selectedItem.getParent() != null) {
+                if (selectedItem.getParent().getValue().equals("Submittal")) {
+                    selectedItem.getChildren().add(newItem);
+                } else if (selectedItem.getParent().getParent() != null) {
+                    selectedItem.getParent().getChildren().add(selectedItem.getParent().getChildren().indexOf(selectedItem)+1,newItem);
+                } else {
+                    root.getChildren().get(root.getChildren().size() - 1).getChildren().add(newItem);
+                }
+            } else if(root.getChildren().size() > 0) {
+                root.getChildren().get(root.getChildren().size() - 1).getChildren().add(newItem);
+            }
         }
     }
 
-    private static void deleteItem(ListView fileListView) {
-        int index = fileListView.getSelectionModel().getSelectedIndex();
-        fileListView.getItems().remove(index);
+    private static void deleteItem() {
+
         listDeleteSave();
+
+        treeView.getSelectionModel().getSelectedItem().getParent().getChildren().remove(treeView.getSelectionModel().getSelectedItem());
     }
 }

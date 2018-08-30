@@ -1,11 +1,9 @@
 package Windows;
 
-import com.company.AutoSave;
 import com.company.SubGenApp;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
-import javafx.embed.swing.SwingFXUtils;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
@@ -17,23 +15,19 @@ import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
 
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Calendar;
-import java.util.List;
 
-import static com.company.AutoSave.loadLastList;
-import static com.company.AutoSave.loadProjectInfo;
-import static com.company.AutoSave.saveProjectInfo;
+import static com.company.AutoSave.*;
 import static com.company.SubGenApp.*;
 
 public class ProjectInfoWindow {
 
-    public static String job, jobAdd1, jobAdd2, architectName, architectAdd1, architectAdd2, architectPhone, genConName, genConAdd1, genConAdd2, genConPhone, imgPath, date, volume;
+    public static String job, jobAdd1, jobAdd2, architectName, architectAdd1, architectAdd2, architectPhone,
+            genConName, genConAdd1, genConAdd2, genConPhone, imgPath, date, volume;
     public static TextField pnField, pAdd1, pAdd2, archNameField, aAdd1, aAdd2, archPhoneField, gcNameField, gAdd1, gAdd2, gcPhoneField;
     public static CheckBox dateCheck;
     public static CheckBox volumeCheck;
@@ -124,9 +118,15 @@ public class ProjectInfoWindow {
 
         Label archBox = new Label("Architect List:");
         final ChoiceBox<String> architect = new ChoiceBox<>(FXCollections.observableArrayList(
-                "ASD|SKY", "Freespace Architects", "Lindsay Pope Brayfield Clifford & Assoc.", "Peacock Architects", "The Preston Partnership", "Design Group Facility Solutions", "Earl Swensson Associates, Inc.", "Collins Cooper Carusi Architects")
+                "ASD|SKY", "Freespace Architects",
+                "Lindsay Pope Brayfield Clifford & Assoc.",
+                "Peacock Architects", "The Preston Partnership",
+                "Design Group Facility Solutions",
+                "Earl Swensson Associates, Inc.",
+                "Collins Cooper Carusi Architects",
+                "Wakefield Beasley & Associates")
         );
-        grid.add(architect, 5, 4, 2, 1);
+        grid.add(architect, 5, 4, 1, 1);
         grid.add(archBox, 5, 3);
 
         architect.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
@@ -190,6 +190,13 @@ public class ProjectInfoWindow {
                         aAdd2.setText("Atlanta, GA 30326");
                         archPhoneField.setText("404-873-0001");
                         break;
+
+                    case 8:
+                        archNameField.setText("Wakefield Beasley & Associates");
+                        aAdd1.setText("5200 Avalon Boulevard");
+                        aAdd2.setText("Alpharetta, GA 30009");
+                        archPhoneField.setText("770-209-9393");
+                        break;
                 }
             }
         });
@@ -204,7 +211,7 @@ public class ProjectInfoWindow {
         final ChoiceBox<String> genContractor = new ChoiceBox<>(FXCollections.observableArrayList(
                 "Balfour Beatty", "Batson-Cook", "Brasfield & Gorrie", "DPR Construction", "Van Winkle Construction", "Hoar Construction", "Gay Construction")
         );
-        grid.add(genContractor, 5, 8, 2,1);
+        grid.add(genContractor, 5, 8, 1,1);
         grid.add(gcBox, 5, 7);
 
         genContractor.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
@@ -285,13 +292,13 @@ public class ProjectInfoWindow {
 
         Label dateCheckLabel = new Label();
         dateCheckLabel.setText("Include a date");
-        grid.add(dateCheckLabel,5,0);
+        grid.add(dateCheckLabel,5,10);
 
         dateCheck = new CheckBox();
-        grid.add(dateCheck,6,0);
+        grid.add(dateCheck,6,10);
 
         DatePicker datePick = new DatePicker();
-        grid.add(datePick, 7,0);
+        grid.add(datePick, 7,10);
         datePick.setValue(getLocalDate());
         datePick.setVisible(false);
 
@@ -314,6 +321,7 @@ public class ProjectInfoWindow {
         grid.add(chooseImageBox, 5, 1);
 
         TextField imagePath = new TextField();
+        imagePath.setText(loadDefaultimage());
         grid.add(imagePath, 5, 2);
 
         chooseImage.setOnAction(e -> {
@@ -324,6 +332,7 @@ public class ProjectInfoWindow {
 
             if(file != null) {
                 imagePath.setText(file.getAbsolutePath());
+                saveDefaultimage(file.getPath());
             }
 
         });
@@ -372,17 +381,21 @@ public class ProjectInfoWindow {
                 gAdd2.setText(savedInfo[9]);
                 gcPhoneField.setText(savedInfo[10]);
                 imagePath.setText(savedInfo[11]);
-                if(!savedInfo[12].equals("")) {
-                    dateCheck.setSelected(true);
-                    date = savedInfo[12];
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
-                    LocalDate localDateLoad = LocalDate.parse(date, formatter);
-                    datePick.setValue(localDateLoad);
+                if(savedInfo[12] != null) {
+                    if (!savedInfo[12].equals("")) {
+                        dateCheck.setSelected(true);
+                        date = savedInfo[12];
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
+                        LocalDate localDateLoad = LocalDate.parse(date, formatter);
+                        datePick.setValue(localDateLoad);
+                    }
                 }
-                if(!savedInfo[13].equals("")) {
-                    volume = savedInfo[13];
-                    volumeCheck.setSelected(true);
-                    volumeText.setText(volume);
+                if(savedInfo[13] != null) {
+                    if (!savedInfo[13].equals("")) {
+                        volume = savedInfo[13];
+                        volumeCheck.setSelected(true);
+                        volumeText.setText(volume);
+                    }
                 }
 
                 job = pnField.getText();
@@ -425,7 +438,7 @@ public class ProjectInfoWindow {
             genConAdd2 = gAdd2.getText();
             genConPhone = gcPhoneField.getText();
             imgPath = imagePath.getText();
-            if(dateCheck.isSelected()){date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));}
+            if(dateCheck.isSelected()){date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));} else {date = "";}
             if(volumeCheck.isSelected()){volume = volumeText.getText();} else {volume = "";}
 
             String[] savedInfo = new String[14];
