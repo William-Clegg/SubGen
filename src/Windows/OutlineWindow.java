@@ -4,16 +4,12 @@ import com.company.CustomTreeCell;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.input.*;
 import javafx.scene.layout.*;
 
-import com.company.FileCell;
 import com.company.SubGenApp;
-
-import java.io.File;
 
 import static com.company.AutoSave.listAddSave;
 import static com.company.AutoSave.listDeleteSave;
@@ -203,5 +199,13 @@ public class OutlineWindow {
         listDeleteSave();
 
         treeView.getSelectionModel().getSelectedItem().getParent().getChildren().remove(treeView.getSelectionModel().getSelectedItem());
+    }
+
+    public static TreeItem getRoot() {
+        return root;
+    }
+
+    public static void setRoot(TreeItem<String> loadRoot) {
+        root = loadRoot;
     }
 }

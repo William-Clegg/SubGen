@@ -51,6 +51,7 @@ class CustomTreeCell : TreeCell<String>() {
         setOnDragDropped { event ->
 
             val db = event.dragboard
+            val selectedItem = treeView.selectionModel.selectedItem
 
             if(item == null) {
                 if(db.hasFiles()) {
@@ -63,8 +64,6 @@ class CustomTreeCell : TreeCell<String>() {
                     }
                     event.consume()
                 } else {
-
-                    val selectedItem = treeView.selectionModel.selectedItem
 
                     if(selectedItem.parent.value.equals("Submittal")) {
                         treeView.root.children.remove(selectedItem)
@@ -83,10 +82,12 @@ class CustomTreeCell : TreeCell<String>() {
                             childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<String>(selectedItem.value))
                             selectedItem.parent.children.remove(selectedItem)
                         }
-
+                        event.consume()
                     }
                 }
             } else if(treeItem != null) {
+
+                var topItem = treeItem
 
                 if(db.hasFiles()) {
 
@@ -95,6 +96,48 @@ class CustomTreeCell : TreeCell<String>() {
                             treeItem.children.add(0, TreeItem(it.absolutePath))
                         } else if (treeItem.parent.parent.parent.value.equals("Submittal")) {
                             treeItem.parent.children.add(treeItem.parent.children.indexOf(treeItem)+1, TreeItem(it.absolutePath))
+                        }
+                    }
+                    event.consume()
+
+                } else if(selectedItem.parent.value.equals("Submittal")) {
+
+                    treeView.root.children.remove(selectedItem)
+                    if(treeItem.parent != null) {
+                        while (!topItem.parent.value.equals("Submittal")) {
+                            topItem = treeItem.parent
+                        }
+                        val thisIndex = treeView.root.children.indexOf(topItem)
+                        treeView.root.children.add(thisIndex+1, selectedItem)
+                    } else {
+                        treeView.root.children.add(0, selectedItem)
+                    }
+                    event.consume()
+
+                } else if(selectedItem.parent.parent.value.equals("Submittal")) {
+
+                    if(treeItem.parent != null) {
+                        if(treeItem.parent.value.equals("Submittal")) {
+                            treeItem.children.add(0, selectedItem)
+                        } else {
+                            while(!topItem.parent.parent.value.equals("Submittal")) {
+                                topItem = treeItem.parent
+                            }
+                            val thisIndex = topItem.parent.children.indexOf(topItem)
+                            topItem.parent.children.add(thisIndex+1, selectedItem)
+                        }
+                        selectedItem.parent.children.remove(selectedItem)
+                    }
+                    event.consume()
+
+                } else if(selectedItem.parent.parent.parent != null) {
+
+                    if(treeItem.parent != null && treeItem.parent.parent != null) {
+                        selectedItem.parent.children.remove(selectedItem)
+                        if(treeItem.parent.parent.value.equals("Submittal")) {
+                            treeItem.children.add(0, selectedItem)
+                        } else {
+                            treeItem.parent.children.add(treeItem.parent.children.indexOf(treeItem), selectedItem)
                         }
                     }
                     event.consume()
