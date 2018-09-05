@@ -1,15 +1,10 @@
 package com.company;
 
-import Windows.OutlineWindow;
 import Windows.ProjectInfoWindow;
-import javafx.collections.FXCollections;
 import javafx.scene.control.TreeItem;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.List;
 
-import static Windows.OutlineWindow.getRoot;
 import static Windows.OutlineWindow.setRoot;
 import static com.company.SubGenApp.*;
 
@@ -139,7 +134,6 @@ public class AutoSave extends ProjectInfoWindow{
             oos.writeObject(savedInfo);
             oos.close();
 
-
         } catch (FileNotFoundException savedInfoE) {
             savedInfoE.printStackTrace();
         } catch (IOException savedInfoE) {
@@ -166,9 +160,8 @@ public class AutoSave extends ProjectInfoWindow{
                 fosMain = new FileOutputStream(listAddition + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosMain = new ObjectOutputStream(fosMain);
-            oosMain.writeObject(getRoot());
+            oosMain.writeObject(subSheets);
             oosMain.close();
-
 
         } catch (FileNotFoundException mainSave) {
             mainSave.printStackTrace();
@@ -197,7 +190,7 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDeleteButton = new FileOutputStream(listDeletion + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDeleteButton = new ObjectOutputStream(fosDeleteButton);
-            oosDeleteButton.writeObject(getRoot());
+            oosDeleteButton.writeObject(subSheets);
             oosDeleteButton.close();
 
         } catch (FileNotFoundException mainSave) {
@@ -227,7 +220,7 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDropped = new FileOutputStream(bottomDrag + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
-            oosDropped.writeObject(getRoot());
+            oosDropped.writeObject(subSheets);
             oosDropped.close();
 
         } catch (FileNotFoundException mainSave) {
@@ -255,7 +248,7 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDropped = new FileOutputStream(listSwap + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
-            oosDropped.writeObject(getRoot());
+            oosDropped.writeObject(subSheets);
             oosDropped.close();
 
         } catch (FileNotFoundException mainSave) {

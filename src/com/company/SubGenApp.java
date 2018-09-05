@@ -4,9 +4,7 @@ import Windows.ProjectInfoWindow;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.scene.Node;
 import javafx.scene.Scene;
-import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -14,7 +12,6 @@ import javax.imageio.ImageIO;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TreeMap;
 import javax.imageio.*;
 import static Windows.OutlineWindow.outlineGrid;
 
@@ -25,7 +22,9 @@ public class SubGenApp extends Application {
     public final static ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
 
     public static ObservableList<String> subSheets = FXCollections.observableArrayList();
-    public static ObservableList<Node> nodeList = FXCollections.observableArrayList();
+
+    public static List<String> tierList = new ArrayList<>();
+    public static List<String> contentList = new ArrayList<>();
 
     public static List<String> southernList = new ArrayList<>();
     public static List<Integer> southernListIndex = new ArrayList<>();
