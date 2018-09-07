@@ -1,15 +1,9 @@
 package com.company
 
-import Windows.OutlineWindow.findPosition
-import Windows.OutlineWindow.updateLists
-import com.company.SubGenApp.contentList
-import com.company.SubGenApp.tierList
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.input.ClipboardContent
-import javafx.scene.input.DragEvent
 import javafx.scene.input.TransferMode
-import java.io.File
 
 class CustomTreeCell : TreeCell<String>() {
 
@@ -64,8 +58,6 @@ class CustomTreeCell : TreeCell<String>() {
                         val childrenOfLastMain = treeView.root.children.get(treeView.root.children.size-1).children
                         if(childrenOfLastMain.size > 0) {
                             childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<String>(it.absolutePath))
-                            contentList.add(it.absolutePath)
-                            tierList.add("sheet")
                         }
                     }
                     event.consume()
@@ -74,30 +66,18 @@ class CustomTreeCell : TreeCell<String>() {
                     if(selectedItem.parent.value.equals("Submittal")) {
                         treeView.root.children.remove(selectedItem)
                         treeView.root.children.add(selectedItem)
-                        tierList.removeAt(contentList.indexOf(selectedItem.value))
-                        contentList.remove(selectedItem.value)
-                        contentList.add(selectedItem.value)
-                        tierList.add("main")
                         event.consume()
                     } else if(selectedItem.parent.parent.value.equals("Submittal")) {
                         val list = selectedItem.children
                         treeView.root.children.get(treeView.root.children.size-1).children.add(TreeItem(selectedItem.value))
                         treeView.root.children.get(treeView.root.children.size-1).children.get(treeView.root.children.size-1).children.addAll(list)
                         selectedItem.parent.children.remove(selectedItem)
-                        tierList.removeAt(contentList.indexOf(selectedItem.value))
-                        contentList.remove(selectedItem.value)
-                        contentList.add(selectedItem.value)
-                        tierList.add("sub")
                         event.consume()
                     } else if(selectedItem.parent.parent.parent != null) {
                         val childrenOfLastMain = treeView.root.children.get(treeView.root.children.size-1).children
                         if(childrenOfLastMain.size > 0) {
                             childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<String>(selectedItem.value))
                             selectedItem.parent.children.remove(selectedItem)
-                            tierList.removeAt(contentList.indexOf(selectedItem.value))
-                            contentList.remove(selectedItem.value)
-                            contentList.add(selectedItem.value)
-                            tierList.add("sheet")
                         }
                         event.consume()
                     }
@@ -111,10 +91,8 @@ class CustomTreeCell : TreeCell<String>() {
                     db.files.forEach {
                         if (treeItem.parent.parent.value.equals("Submittal")) {
                             treeItem.children.add(0, TreeItem(it.absolutePath))
-                            updateLists("sheet", it.absolutePath, findPosition(treeItem))
                         } else if (treeItem.parent.parent.parent.value.equals("Submittal")) {
                             treeItem.parent.children.add(treeItem.parent.children.indexOf(treeItem)+1, TreeItem(it.absolutePath))
-                            updateLists("sheet", it.absolutePath, findPosition(treeItem))
                         }
                     }
                     event.consume()

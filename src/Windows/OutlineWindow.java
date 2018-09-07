@@ -179,37 +179,25 @@ public class OutlineWindow {
             TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
 
             String content = subCatField.getText();
-            while(contentList.contains(content)) {
-                content = content + " ";
-            }
             TreeItem<String> newItem = new TreeItem<>(content);
             newItem.setExpanded(true);
 
             if(selectedItem != null && selectedItem.getParent() != null) {
 
-                int position;
-
                 if (selectedItem.getParent().getValue().equals("Submittal")) {
 
-                    position = contentList.indexOf(selectedItem.getParent().getChildren()
-                            .get(selectedItem.getParent().getChildren().indexOf(selectedItem)+1).getValue());
-
                     selectedItem.getChildren().add(newItem);
-                    updateLists("sub", newItem.getValue(), position);
                 } else if (selectedItem.getParent().getParent() != null) {
 
-                    position = findPosition(selectedItem);
                     selectedItem.getParent().getChildren().add(selectedItem.getParent().getChildren().indexOf(selectedItem)+1,newItem);
-                    updateLists("sub", newItem.getValue(), position);
+
                 } else {
 
-                    position = findPosition(selectedItem);
                     root.getChildren().get(root.getChildren().size() - 1).getChildren().add(newItem);
-                    updateLists("sub", newItem.getValue(), position);
                 }
+
             } else if(root.getChildren().size() > 0) {
                 root.getChildren().get(root.getChildren().size() - 1).getChildren().add(newItem);
-                updateLists("sub", newItem.getValue());
             }
         }
     }
@@ -229,19 +217,23 @@ public class OutlineWindow {
         root = loadRoot;
     }
 
-    public static void updateLists(String tier, String content, int position) {
-        tierList.add(position, tier);
-        contentList.add(position, content);
+
+    public static void traverse(TreeItem<String> node, int level) {
+
+        String space = "";
+        int num = level;
+        while(num > 0) {
+            space += " ";
+            num--;
+        }
+        contentList.add(space + node.getValue());
+
+        for(TreeItem<String> it : node.getChildren()) {
+            traverse(it, level + 1);
+        }
     }
 
-    public static void updateLists(String tier, String content) {
-        tierList.add(tier);
-        contentList.add(content);
-    }
-
-    public static int findPosition(TreeItem selectedString) {
-
-        return contentList.indexOf(selectedString.getValue().toString());
-
+    public static TreeView<String> getTreeView() {
+        return treeView;
     }
 }

@@ -1,10 +1,14 @@
 package com.company;
 
+import Windows.OutlineWindow;
 import Windows.ProjectInfoWindow;
 import javafx.scene.control.TreeItem;
 
 import java.io.*;
+import java.util.ArrayList;
 
+import static Windows.OutlineWindow.getRoot;
+import static Windows.OutlineWindow.getTreeView;
 import static Windows.OutlineWindow.setRoot;
 import static com.company.SubGenApp.*;
 
@@ -51,9 +55,23 @@ public class AutoSave extends ProjectInfoWindow{
         try {
             FileInputStream fis = new FileInputStream(file);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            TreeItem<String> loadSubList = (TreeItem<String>) ois.readObject();
-            setRoot(loadSubList);
-            System.out.println("The list of Strings " + subSheets.toString());
+            ArrayList<String> loadSubList = (ArrayList<String>) ois.readObject();
+
+            for(int i = 0; i < loadSubList.size(); i++) {
+
+                if(loadSubList.get(i).substring(0,3).equals("   ")) {
+                    getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren()
+                            .get(getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren().size()-1)
+                            .getChildren().add(new TreeItem<>(loadSubList.get(i).substring(3)));
+                } else if(loadSubList.get(i).substring(0,2).equals("  ")) {
+                    getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren()
+                            .add(new TreeItem<>(loadSubList.get(i).substring(2)));
+                } else if(loadSubList.get(i).substring(0,1).equals(" ")) {
+                    getTreeView().getRoot().getChildren().add(new TreeItem<>(loadSubList.get(i).substring(1)));
+                }
+            }
+
+            System.out.println("The list of Strings " + contentList.toString());
             ois.close();
 
         } catch (IOException savedInfoLoadE) {
@@ -160,7 +178,8 @@ public class AutoSave extends ProjectInfoWindow{
                 fosMain = new FileOutputStream(listAddition + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosMain = new ObjectOutputStream(fosMain);
-            oosMain.writeObject(subSheets);
+            OutlineWindow.traverse(getRoot(), 0);
+            oosMain.writeObject(contentList);
             oosMain.close();
 
         } catch (FileNotFoundException mainSave) {
@@ -190,7 +209,8 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDeleteButton = new FileOutputStream(listDeletion + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDeleteButton = new ObjectOutputStream(fosDeleteButton);
-            oosDeleteButton.writeObject(subSheets);
+            OutlineWindow.traverse(getRoot(), 0);
+            oosDeleteButton.writeObject(contentList);
             oosDeleteButton.close();
 
         } catch (FileNotFoundException mainSave) {
@@ -220,7 +240,8 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDropped = new FileOutputStream(bottomDrag + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
-            oosDropped.writeObject(subSheets);
+            OutlineWindow.traverse(getRoot(), 0);
+            oosDropped.writeObject(contentList);
             oosDropped.close();
 
         } catch (FileNotFoundException mainSave) {
@@ -248,7 +269,8 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDropped = new FileOutputStream(listSwap + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
-            oosDropped.writeObject(subSheets);
+            OutlineWindow.traverse(getRoot(), 0);
+            oosDropped.writeObject(contentList);
             oosDropped.close();
 
         } catch (FileNotFoundException mainSave) {
