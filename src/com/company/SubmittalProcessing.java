@@ -43,6 +43,11 @@ public class SubmittalProcessing {
         IIORegistry registry = IIORegistry.getDefaultInstance();
         registry.registerServiceProvider(new com.github.jaiimageio.jpeg2000.impl.J2KImageReaderSpi());
 
+        subSheets.clear();
+        for (String it: contentList) {
+            subSheets.add(it);
+        }
+
         /*--------------------------------------------------------------------------------
          *  Margins are set to zero so that the submittal sheets fill each page properly.
          */
@@ -329,6 +334,8 @@ public class SubmittalProcessing {
         int curNum = 0;
         int curSubNum = 1;
         boolean newCat = false;
+
+        System.out.println("subsheets right before processing" + subSheets.toString());
 
         for (int i = 0; i < subSheets.size(); i++) {
             XWPFRun r12 = p9.createRun();

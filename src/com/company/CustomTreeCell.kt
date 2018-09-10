@@ -1,5 +1,7 @@
 package com.company
 
+import com.company.AutoSave.bottomDragSave
+import com.company.AutoSave.listSwapSave
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.input.ClipboardContent
@@ -69,19 +71,20 @@ class CustomTreeCell : TreeCell<String>() {
                         event.consume()
                     } else if(selectedItem.parent.parent.value.equals("Submittal")) {
                         val list = selectedItem.children
+                        selectedItem.parent.children.remove(selectedItem)
                         treeView.root.children.get(treeView.root.children.size-1).children.add(TreeItem(selectedItem.value))
                         treeView.root.children.get(treeView.root.children.size-1).children.get(treeView.root.children.size-1).children.addAll(list)
-                        selectedItem.parent.children.remove(selectedItem)
                         event.consume()
                     } else if(selectedItem.parent.parent.parent != null) {
                         val childrenOfLastMain = treeView.root.children.get(treeView.root.children.size-1).children
                         if(childrenOfLastMain.size > 0) {
-                            childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<String>(selectedItem.value))
                             selectedItem.parent.children.remove(selectedItem)
+                            childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<String>(selectedItem.value))
                         }
                         event.consume()
                     }
                 }
+                bottomDragSave()
             } else if(treeItem != null) {
 
                 var topItem = treeItem
@@ -114,31 +117,38 @@ class CustomTreeCell : TreeCell<String>() {
                 } else if(selectedItem.parent.parent.value.equals("Submittal")) {
 
                     if(treeItem.parent != null) {
+                        selectedItem.parent.children.remove(selectedItem)
                         if(treeItem.parent.value.equals("Submittal")) {
                             treeItem.children.add(0, selectedItem)
                         } else {
-                            while(!topItem.parent.parent.value.equals("Submittal")) {
+                            if(!treeItem.parent.parent.value.equals("Submittal")) {
                                 topItem = treeItem.parent
                             }
                             val thisIndex = topItem.parent.children.indexOf(topItem)
-                            topItem.parent.children.add(thisIndex+1, selectedItem)
+                            if(topItem.parent.children.size-1 > thisIndex) {
+                                topItem.parent.children.add(thisIndex + 1, selectedItem)
+                            } else {
+                                topItem.parent.children.add(selectedItem)
+                            }
                         }
-                        selectedItem.parent.children.remove(selectedItem)
                     }
                     event.consume()
 
                 } else if(selectedItem.parent.parent.parent != null) {
 
-                    if(treeItem.parent != null && treeItem.parent.parent != null) {
+                    if(treeItem.parent.parent != null) {
+
                         selectedItem.parent.children.remove(selectedItem)
                         if(treeItem.parent.parent.value.equals("Submittal")) {
                             treeItem.children.add(0, selectedItem)
                         } else {
                             treeItem.parent.children.add(treeItem.parent.children.indexOf(treeItem), selectedItem)
                         }
+
                     }
                     event.consume()
                 }
+                listSwapSave()
             }
         }
     }

@@ -18,9 +18,6 @@ import static com.company.SubmittalProcessing.createSubmittal;
 
 public class OutlineWindow {
 
-    private static TreeItem<String> root;
-    private static TreeView<String> treeView;
-
     public static GridPane outlineGrid() {
 
         System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
@@ -46,10 +43,6 @@ public class OutlineWindow {
         grid.setGridLinesVisible(false);
         grid.setPadding(new Insets(25, 25, 50, 50));
 
-        root = new TreeItem<>("Submittal");
-        root.setExpanded(true);
-        treeView = new TreeView<String>(root);
-        treeView.setCellFactory(param -> new CustomTreeCell());
         ListView<String> fileListView = new ListView<>(subSheets);
         //fileListView.setCellFactory(param -> new FileCell());
         grid.add(treeView, 0, 0, 3, 11);
@@ -144,9 +137,6 @@ public class OutlineWindow {
 
     private static void addMainCategory(TextField mainCatField) {
         if (!mainCatField.getText().isEmpty() && !subSheets.contains(mainCatField.getText())) {
-            subSheets.add(mainCatField.getText());
-            System.out.println(subSheets);
-            listAddSave();
 
             TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
             TreeItem<String> newItem = new TreeItem<>(mainCatField.getText());
@@ -160,21 +150,13 @@ public class OutlineWindow {
             } else {
                 root.getChildren().add(newItem);
             }
+            listAddSave();
         }
     }
 
     private static void addSubCategory(TextField subCatField) {
-        String category;
+
         if (!subCatField.getText().isEmpty() && root.getChildren().size() != 0) {
-            category = "  " + subCatField.getText();
-            if(subSheets.contains(category)) {
-                do{
-                    category = category + " ";
-                } while(subSheets.contains(category));
-            }
-            subSheets.add(category);
-            System.out.println(subSheets);
-            listAddSave();
 
             TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
 
@@ -199,14 +181,14 @@ public class OutlineWindow {
             } else if(root.getChildren().size() > 0) {
                 root.getChildren().get(root.getChildren().size() - 1).getChildren().add(newItem);
             }
+            listAddSave();
         }
     }
 
     private static void deleteItem() {
 
-        listDeleteSave();
-
         treeView.getSelectionModel().getSelectedItem().getParent().getChildren().remove(treeView.getSelectionModel().getSelectedItem());
+        listDeleteSave();
     }
 
     public static TreeItem getRoot() {
@@ -220,17 +202,25 @@ public class OutlineWindow {
 
     public static void traverse(TreeItem<String> node, int level) {
 
-        String space = "";
+        String space;
         int num = level;
-        while(num > 0) {
-            space += " ";
-            num--;
+
+        if(level == 3) {
+            space = "    ";
+        } else if(level == 2) {
+            space = "  ";
+        } else {
+            space = "";
         }
         contentList.add(space + node.getValue());
 
         for(TreeItem<String> it : node.getChildren()) {
-            traverse(it, level + 1);
+            if(level < 3) {
+                traverse(it, level + 1);
+            }
         }
+
+        contentList.remove("Submittal");
     }
 
     public static TreeView<String> getTreeView() {

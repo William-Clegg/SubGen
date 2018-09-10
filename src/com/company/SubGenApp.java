@@ -5,6 +5,8 @@ import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Scene;
+import javafx.scene.control.TreeItem;
+import javafx.scene.control.TreeView;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -23,8 +25,10 @@ public class SubGenApp extends Application {
 
     public static ObservableList<String> subSheets = FXCollections.observableArrayList();
 
-    public static List<String> tierList = new ArrayList<>();
     public static List<String> contentList = new ArrayList<>();
+
+    public static TreeItem<String> root;
+    public static TreeView<String> treeView;
 
     public static List<String> southernList = new ArrayList<>();
     public static List<Integer> southernListIndex = new ArrayList<>();
@@ -38,6 +42,11 @@ public class SubGenApp extends Application {
         window.setTitle("Submittal Generator");
 
         GridPane grid = ProjectInfoWindow.createGrid();
+
+        root = new TreeItem<>("Submittal");
+        root.setExpanded(true);
+        treeView = new TreeView<String>(root);
+        treeView.setCellFactory(param -> new CustomTreeCell());
 
         scene = new Scene(grid, 900, 700);
         primaryStage.setScene(scene);

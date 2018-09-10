@@ -9,7 +9,6 @@ import java.util.ArrayList;
 
 import static Windows.OutlineWindow.getRoot;
 import static Windows.OutlineWindow.getTreeView;
-import static Windows.OutlineWindow.setRoot;
 import static com.company.SubGenApp.*;
 
 public class AutoSave extends ProjectInfoWindow{
@@ -55,23 +54,23 @@ public class AutoSave extends ProjectInfoWindow{
         try {
             FileInputStream fis = new FileInputStream(file);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            ArrayList<String> loadSubList = (ArrayList<String>) ois.readObject();
+            contentList = (ArrayList<String>) ois.readObject();
+            System.out.println("The list of Strings " + contentList.toString());
 
-            for(int i = 0; i < loadSubList.size(); i++) {
+            for(int i = 0; i < contentList.size(); i++) {
 
-                if(loadSubList.get(i).substring(0,3).equals("   ")) {
+                if(contentList.get(i).substring(0,4).equals("    ")) {
                     getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren()
                             .get(getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren().size()-1)
-                            .getChildren().add(new TreeItem<>(loadSubList.get(i).substring(3)));
-                } else if(loadSubList.get(i).substring(0,2).equals("  ")) {
+                            .getChildren().add(new TreeItem<>(contentList.get(i).substring(4)));
+                } else if(contentList.get(i).substring(0,2).equals("  ") && !contentList.get(i).substring(0,4).equals("    ")) {
                     getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren()
-                            .add(new TreeItem<>(loadSubList.get(i).substring(2)));
-                } else if(loadSubList.get(i).substring(0,1).equals(" ")) {
-                    getTreeView().getRoot().getChildren().add(new TreeItem<>(loadSubList.get(i).substring(1)));
+                            .add(new TreeItem<>(contentList.get(i).substring(2)));
+                } else if(!contentList.get(i).substring(0,2).equals("  ")) {
+                    getTreeView().getRoot().getChildren().add(new TreeItem<>(contentList.get(i)));
                 }
             }
 
-            System.out.println("The list of Strings " + contentList.toString());
             ois.close();
 
         } catch (IOException savedInfoLoadE) {
@@ -178,6 +177,7 @@ public class AutoSave extends ProjectInfoWindow{
                 fosMain = new FileOutputStream(listAddition + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosMain = new ObjectOutputStream(fosMain);
+            contentList.clear();
             OutlineWindow.traverse(getRoot(), 0);
             oosMain.writeObject(contentList);
             oosMain.close();
@@ -209,6 +209,7 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDeleteButton = new FileOutputStream(listDeletion + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDeleteButton = new ObjectOutputStream(fosDeleteButton);
+            contentList.clear();
             OutlineWindow.traverse(getRoot(), 0);
             oosDeleteButton.writeObject(contentList);
             oosDeleteButton.close();
@@ -240,6 +241,7 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDropped = new FileOutputStream(bottomDrag + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
+            contentList.clear();
             OutlineWindow.traverse(getRoot(), 0);
             oosDropped.writeObject(contentList);
             oosDropped.close();
@@ -269,6 +271,7 @@ public class AutoSave extends ProjectInfoWindow{
                 fosDropped = new FileOutputStream(listSwap + "\\" + volume + "\\ProjectOutline.ser");
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
+            contentList.clear();
             OutlineWindow.traverse(getRoot(), 0);
             oosDropped.writeObject(contentList);
             oosDropped.close();
