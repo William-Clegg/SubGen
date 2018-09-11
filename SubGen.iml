@@ -23,5 +23,7 @@
     <orderEntry type="library" name="javaocr-plugin-morphology-1.0" level="project" />
     <orderEntry type="library" exported="" name="poiMerge" level="project" />
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
+    <orderEntry type="library" name="docx4j-6.0.1" level="project" />
+    <orderEntry type="library" name="Docx4j-dependencies" level="project" />
   </component>
 </module>

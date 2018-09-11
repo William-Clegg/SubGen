@@ -1,6 +1,6 @@
 package Windows;
 
-import com.company.CustomTreeCell;
+import com.company.GeneralProcessing;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -14,7 +14,6 @@ import com.company.SubGenApp;
 import static com.company.AutoSave.listAddSave;
 import static com.company.AutoSave.listDeleteSave;
 import static com.company.SubGenApp.*;
-import static com.company.SubmittalProcessing.createSubmittal;
 
 public class OutlineWindow {
 
@@ -127,7 +126,8 @@ public class OutlineWindow {
         grid.add(nextBtn, 4, 9);
 
         button.setOnAction(e -> {
-            createSubmittal();
+            GeneralProcessing generalProcessor = new GeneralProcessing();
+            generalProcessor.createSubmittal();
         });
 
         ProgressBar pb = new ProgressBar();

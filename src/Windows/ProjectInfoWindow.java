@@ -385,7 +385,7 @@ public class ProjectInfoWindow {
                     if (!savedInfo[12].equals("")) {
                         dateCheck.setSelected(true);
                         date = savedInfo[12];
-                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
                         LocalDate localDateLoad = LocalDate.parse(date, formatter);
                         datePick.setValue(localDateLoad);
                     }
@@ -410,7 +410,7 @@ public class ProjectInfoWindow {
                 genConAdd2 = gAdd2.getText();
                 genConPhone = gcPhoneField.getText();
                 imgPath = imagePath.getText();
-                date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM-dd-yyyy"));
+                date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));
                 if(volumeCheck.isSelected()){volume = volumeText.getText();}
 
 
@@ -436,7 +436,7 @@ public class ProjectInfoWindow {
             genConAdd2 = gAdd2.getText();
             genConPhone = gcPhoneField.getText();
             imgPath = imagePath.getText();
-            if(dateCheck.isSelected()){date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM-dd-yyyy"));} else {date = "";}
+            if(dateCheck.isSelected()){date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));} else {date = "";}
             if(volumeCheck.isSelected()){volume = volumeText.getText();} else {volume = "";}
 
             String[] savedInfo = new String[14];
@@ -465,8 +465,8 @@ public class ProjectInfoWindow {
     }
 
     public static final LocalDate getLocalDate(){
-        String date = new SimpleDateFormat("MM-dd-yyyy").format(Calendar.getInstance().getTime());
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM-dd-yyyy");
+        String date = new SimpleDateFormat("MM/dd/yyyy").format(Calendar.getInstance().getTime());
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
         LocalDate localDate = LocalDate.parse(date , formatter);
         return localDate;
     }
