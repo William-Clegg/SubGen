@@ -6,5 +6,6 @@ module SubGen {
     requires pdfbox;
     requires poiMerge;
     requires kotlin.stdlib;
+    requires xmlbeans;
     exports com.company to javafx.graphics;
 }

@@ -178,7 +178,7 @@ public class AutoSave extends ProjectInfoWindow{
             }
             ObjectOutputStream oosMain = new ObjectOutputStream(fosMain);
             contentList.clear();
-            OutlineWindow.traverse(getRoot(), 0);
+            OutlineWindow.createListFromTree(getRoot(), 0);
             oosMain.writeObject(contentList);
             oosMain.close();
 
@@ -210,7 +210,7 @@ public class AutoSave extends ProjectInfoWindow{
             }
             ObjectOutputStream oosDeleteButton = new ObjectOutputStream(fosDeleteButton);
             contentList.clear();
-            OutlineWindow.traverse(getRoot(), 0);
+            OutlineWindow.createListFromTree(getRoot(), 0);
             oosDeleteButton.writeObject(contentList);
             oosDeleteButton.close();
 
@@ -242,7 +242,7 @@ public class AutoSave extends ProjectInfoWindow{
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
             contentList.clear();
-            OutlineWindow.traverse(getRoot(), 0);
+            OutlineWindow.createListFromTree(getRoot(), 0);
             oosDropped.writeObject(contentList);
             oosDropped.close();
 
@@ -272,7 +272,7 @@ public class AutoSave extends ProjectInfoWindow{
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
             contentList.clear();
-            OutlineWindow.traverse(getRoot(), 0);
+            OutlineWindow.createListFromTree(getRoot(), 0);
             oosDropped.writeObject(contentList);
             oosDropped.close();
 

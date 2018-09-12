@@ -3,27 +3,24 @@ package com.company
 import Windows.ProjectInfoWindow.*
 import org.apache.poi.util.Units
 import org.apache.poi.xwpf.usermodel.*
+import org.apache.xmlbeans.XmlObject
 import java.io.File
 import java.io.FileInputStream
 import java.math.BigInteger
 import javax.imageio.ImageIO
+import  org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
+import java.io.FileOutputStream
 
 class GeneralProcessing {
 
+    private var coverPageDoc = XWPFDocument(FileInputStream("CoverPage.docx"))
     private var generalInfoDoc = XWPFDocument()
 
     fun createSubmittal() {
 
-        val sectPr = generalInfoDoc.document.body.addNewSectPr()
-        val pageMar = sectPr.addNewPgMar()
-        pageMar.left = BigInteger.valueOf(600L)
-        pageMar.top = BigInteger.valueOf(600L)
-        pageMar.right = BigInteger.valueOf(600L)
-        pageMar.bottom = BigInteger.valueOf(600L)
-
-        val p = generalInfoDoc.createParagraph()
+        val p = coverPageDoc.paragraphs[0]
         p.alignment = ParagraphAlignment.LEFT
-        val r = p.createRun()
+        val r = p.runs.get(0)
         try {
             val bimg = ImageIO.read(File(imgPath))
             val width = bimg.width
@@ -31,9 +28,6 @@ class GeneralProcessing {
             val adjustment = 220 / height
             val format = XWPFDocument.PICTURE_TYPE_JPEG
             r.addBreak()
-            r.ctr.insertNewBr(1)
-            r.ctr.insertNewBr(1)
-            r.ctr.insertNewBr(1)
             r.addPicture(FileInputStream(imgPath), format, imgPath, Units.toEMU(Math.round(width * adjustment).toDouble()), Units.toEMU(220.0))
 
             p.alignment = ParagraphAlignment.CENTER
@@ -42,61 +36,86 @@ class GeneralProcessing {
             System.err.println(e.toString() + "Image file not found")
         }
 
+        val titleString = "1"
+        val projectString = "2"
+        val authorString = "3"
+        val volumeString = "4"
+        val dateString = "5"
 
-        val p1 = generalInfoDoc.createParagraph()
-        p1.alignment = ParagraphAlignment.CENTER
-        p1.verticalAlignment = TextAlignment.CENTER
+        for (paragraph:XWPFParagraph in coverPageDoc.paragraphs) {
 
-        val r0 = p1.createRun()
-        r0.ctr.insertNewBr(1)
-        r0.fontSize = 36
-        r0.isBold =true
-        r0.setText("Plumbing Submittal")
-        r0.fontFamily = "Calibri (Body)"
+            val cursor = paragraph.ctp.newCursor()
+            cursor.selectPath("declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' .//*/w:txbxContent/w:p/w:r")
 
-        val r1 = p1.createRun()
-        r1.ctr.insertNewBr(1)
-        r1.ctr.insertNewBr(1)
-        r1.fontSize = 46
-        r1.isBold = true
-        r1.underline = UnderlinePatterns.SINGLE
-        r1.setText(job)
-        r1.fontFamily = "Calibri (Body)"
+            val ctrsInTextBox = ArrayList<XmlObject>()
 
-        if (volumeCheck.isSelected) {
-            val r21 = p1.createRun()
-            r21.ctr.insertNewBr(1)
-            r21.fontSize = 28
-            r21.fontFamily = "Calibri (Body)"
-            r21.isBold = true
-            r21.underline = UnderlinePatterns.SINGLE
-            r21.setText(volume)
+            while(cursor.hasNextSelection()) {
+                cursor.toNextSelection()
+                val obj = cursor.`object`
+                ctrsInTextBox.add(obj)
+            }
+
+            for(obj:XmlObject in ctrsInTextBox) {
+                val ctr = CTR.Factory.parse(obj.toString())
+                val bufferRun = XWPFRun(ctr, paragraph as IRunBody)
+                var text = bufferRun.getText(0)
+                println(text)
+                if(text != null) {
+                    if(text.contains(titleString)) {
+                        text = text.replace(titleString, "Submittal Thing")
+                        bufferRun.setText(text, 0)
+                    } else if(text.contains(projectString)) {
+                        text = text.replace(projectString, "Coca-Cola Warehouse")
+                        bufferRun.setText(text, 0)
+                        bufferRun.isBold = true
+
+                    } else if(text.contains(volumeString)) {
+
+                        if (volumeCheck.isSelected) {
+                            text = text.replace(volumeString, volume)
+                            bufferRun.setText(text, 0)
+                            bufferRun.isBold = true
+
+                            bufferRun.fontSize = 28
+                            bufferRun.fontFamily = "Calibri (Body)"
+                            bufferRun.underline = UnderlinePatterns.SINGLE
+                        } else {
+                            text = text.replace(volumeString, "")
+                            bufferRun.setText(text, 0)
+                        }
+                    } else if(text.contains(dateString)) {
+
+                        if (dateCheck.isSelected) {
+                            text = text.replace(dateString, date)
+                            bufferRun.setText(text, 0)
+                            bufferRun.isBold = true
+
+                            bufferRun.fontSize = 18
+                            bufferRun.fontFamily = "Calibri (Body)"
+
+                        } else {
+
+                            text = text.replace(dateString, "")
+                            bufferRun.setText(text, 0)
+                        }
+                    } else if(text.contains(authorString)) {
+                        text = text.replace(authorString, "Prepared by Stasco Mechanical Contractors")
+                        bufferRun.setText(text, 0)
+                    }
+                }
+                obj.set(bufferRun.ctr)
+            }
         }
 
-        if (dateCheck.isSelected) {
-            val r22 = p1.createRun()
-            r22.ctr.insertNewBr(1)
-            r22.fontSize = 18
-            r22.fontFamily = "Calibri (Body)"
-            r22.setText(date)
-        }
+        coverPageDoc.write((FileOutputStream("NewCoverPage.docx")))
+        coverPageDoc.close()
 
-        val p2 = generalInfoDoc.createParagraph()
-        p2.alignment = ParagraphAlignment.CENTER
-        p2.verticalAlignment = TextAlignment.BOTTOM
-
-        val r2 = p2.createRun()
-        if (job.length < 26) {
-            r2.ctr.insertNewBr(1)
-        }
-        r2.ctr.insertNewBr(1)
-        r2.fontSize = 20
-        r2.isBold = true
-        r2.setText("Prepared by Stasco Mechanical")
-        r2.ctr.insertNewBr(1)
-        r2.isBold = true
-        r2.fontFamily = "Calibri (Body)"
-        r2.addBreak(BreakType.PAGE)
+        val sectPr = generalInfoDoc.document.body.addNewSectPr()
+        val pageMar = sectPr.addNewPgMar()
+        pageMar.left = BigInteger.valueOf(600L)
+        pageMar.top = BigInteger.valueOf(600L)
+        pageMar.right = BigInteger.valueOf(600L)
+        pageMar.bottom = BigInteger.valueOf(600L)
 
         val p3 = generalInfoDoc.createParagraph()
         p3.alignment = ParagraphAlignment.CENTER
@@ -260,21 +279,11 @@ class GeneralProcessing {
         stascoPhone.setText("770-422-7118")
         stascoPhone.addBreak(BreakType.PAGE)
 
-        val p8 = generalInfoDoc.createParagraph()
-        p8.alignment = ParagraphAlignment.CENTER
-        p8.verticalAlignment = TextAlignment.TOP
-
-        val r11 = p8.createRun()
-        r11.fontSize = 22
-        r11.fontFamily = "Calibri (Body)"
-
-        r11.ctr.insertNewBr(1)
-
-        r11.underline = UnderlinePatterns.SINGLE
-        r11.isBold = true
-        r11.setText("INDEX")
+        generalInfoDoc.write((FileOutputStream("GeneralInfoPage.docx")))
+        generalInfoDoc.close()
 
         val submittalSheetProcessor = SubmittalProcessing()
-        submittalSheetProcessor.processSubmittalContent(generalInfoDoc)
+        submittalSheetProcessor.processSubmittalContent()
+
     }
 }

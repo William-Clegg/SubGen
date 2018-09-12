@@ -1,31 +1,27 @@
 package com.company;
 
+import javafx.scene.control.TreeItem;
 import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.rendering.ImageType;
-import org.apache.pdfbox.rendering.PDFRenderer;
-import org.apache.poi.util.Units;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
+import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
+import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
+import org.apache.poi.wp.usermodel.Paragraph;
 import org.apache.poi.xwpf.usermodel.*;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageMar;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTShd;
-import org.openxmlformats.schemas.wordprocessingml.x2006.main.STShd;
 
-import javax.imageio.IIOImage;
-import javax.imageio.ImageWriteParam;
-import javax.imageio.plugins.jpeg.JPEGImageWriteParam;
 import javax.imageio.spi.IIORegistry;
-import javax.imageio.stream.FileImageOutputStream;
-import java.awt.image.BufferedImage;
 import java.io.*;
-import java.math.BigInteger;
 import java.nio.CharBuffer;
 import java.util.ArrayList;
 import java.util.List;
 
-import static OCR.OcrProcessing.readSouthernDoc;
 import static Windows.ProjectInfoWindow.*;
 import static com.company.SubGenApp.*;
-import static com.company.SubGenApp.southernList;
 import static com.company.SubGenApp.subSheets;
 
 /*--------------------------------------------------------------------------------
@@ -36,8 +32,9 @@ import static com.company.SubGenApp.subSheets;
 
 public class SubmittalProcessing {
 
-    public void processSubmittalContent(XWPFDocument partialDoc) {
-        XWPFDocument submittalDoc = partialDoc;
+    private static ArrayList<ArrayList<PDDocument>> submittalSections = new ArrayList<>();
+
+    public void processSubmittalContent() {
 
         IIORegistry registry = IIORegistry.getDefaultInstance();
         registry.registerServiceProvider(new com.github.jaiimageio.jpeg2000.impl.J2KImageReaderSpi());
@@ -47,18 +44,21 @@ public class SubmittalProcessing {
             subSheets.add(it);
         }
 
-        /*--------------------------------------------------------------------------------
-         *  Margins are set to zero so that the submittal sheets fill each page properly.
-         */
+        XWPFDocument mainIndexDoc = new XWPFDocument();
 
-        CTSectPr sectPr = submittalDoc.getDocument().getBody().addNewSectPr();
-        CTPageMar pageMar = sectPr.addNewPgMar();
-        pageMar.setLeft(BigInteger.valueOf(600L));
-        pageMar.setTop(BigInteger.valueOf(600L));
-        pageMar.setRight(BigInteger.valueOf(600L));
-        pageMar.setBottom(BigInteger.valueOf(600L));
+        XWPFParagraph p8 = mainIndexDoc.createParagraph();
+        p8.setAlignment(ParagraphAlignment.CENTER);
+        p8.setVerticalAlignment(TextAlignment.TOP);
 
-        XWPFParagraph p9 = submittalDoc.createParagraph();
+        XWPFRun r11 = p8.createRun();
+        r11.setFontSize(22);
+        r11.setFontFamily("Calibri (Body)");
+
+        r11.setUnderline(UnderlinePatterns.SINGLE);
+        r11.setBold(true);
+        r11.setText("INDEX");
+
+        XWPFParagraph p9 = mainIndexDoc.createParagraph();
         p9.setAlignment(ParagraphAlignment.LEFT);
         p9.setVerticalAlignment(TextAlignment.TOP);
         p9.setIndentationLeft(1080);
@@ -95,10 +95,6 @@ public class SubmittalProcessing {
 
             if (subSheets.get(i).substring(0, 2).equals("  ") && (!subSheets.get(i).substring(0, 4).equals("    ") || subSheets.get(i).length() < 4)) {
 
-                if (subSheets.get(i + 1).contains("SP&S")) {
-                    readSouthernDoc(i);
-
-                }
                 if (newCat) {
                     r12.setFontSize(12);
                     r12.setFontFamily("Calibri (Body)");
@@ -114,273 +110,145 @@ public class SubmittalProcessing {
                 }
             }
         }
-        String file;
-        int slashIndex;
-        int dotIndex;
-        CharBuffer slash = CharBuffer.allocate(1);
-        slash.append('\\');
-        curNum = 1;
-        curSubNum = 1;
-        newCat = false;
-        List<Integer> list = new ArrayList<>();
-        int numDocs = 0;
-        String mainHeader = "";
-        String subHeader = "";
-        int subNumber = 0;
-        int lastMain = 0;
-
-        for (int i = 0; i < subSheets.size(); i++) {
-
-            if (!subSheets.get(i).substring(0, 2).equals("  ") || i == subSheets.size() - 1) {
-
-
-                if (i == subSheets.size() - 1) {
-
-                    XWPFParagraph p11 = submittalDoc.createParagraph();
-                    p11.setSpacingAfter(0);
-                    p11.setSpacingBefore(0);
-
-                    XWPFRun r15 = p11.createRun();
-                    r15.setFontSize(12);
-                    r15.setFontFamily("Calibri (Body)");
-
-                    if (newCat) {
-                        r15.getCTR().insertNewBr(1);
-                    }
-
-                    slashIndex = subSheets.get(i).lastIndexOf('\\') + 1;
-                    dotIndex = subSheets.get(i).lastIndexOf('.');
-                    if (subSheets.get(i).contains(slash)) {
-                        file = subSheets.get(i).substring(slashIndex, dotIndex);
-                    } else {
-                        file = subSheets.get(i);
-                    }
-                    r15.setText("                                   " + file);
-
-                    newCat = false;
-                }
-
-                if (i != 0) {
-
-                    for (int j = lastMain; j <= i; j++) {
-
-                        if (subSheets.get(j).substring(0, 2).equals("  ") && !subSheets.get(j).substring(0, 4).equals("    ")) {
-                            if (!subSheets.get(j + 1).contains("SP&S")) {
-                                subNumber++;
-                                subHeader = subSheets.get(j);
-                            }
-                        }
-
-                        if (subSheets.get(j).substring(0, 4).equals("    ")) {
-
-                            try {
-
-                                if (subSheets.get(j).substring(subSheets.get(j).lastIndexOf('.')).equals(".pdf") && !subSheets.get(j).contains("SP&S")) {
-
-                                    try {
-
-                                        String sourceDir;
-                                        sourceDir = subSheets.get(j).substring(4);
-
-                                        System.out.println("the filepath about to be added " + sourceDir);
-                                        File sourceFile = new File(sourceDir);
-
-                                        if (sourceFile.exists()) {
-
-                                            PDDocument document = PDDocument.load(new File(sourceDir));
-                                            System.out.println("sourceDir just assigned to document");
-                                            PDFRenderer pdfRenderer = new PDFRenderer(document);
-                                            System.out.println("document just rendered");
-                                            //@SuppressWarnings("unchecked")
-                                            String fileName = sourceFile.getName().replace(".pdf", "");
-                                            int pageNumber = 0;
-                                            int totalPages = document.getNumberOfPages();
-                                            for (int k = 0; k < totalPages; k++) {
-                                                System.out.println("Processing page " + (pageNumber+1) + " of " + totalPages + " / " + fileName);
-                                                BufferedImage image = pdfRenderer.renderImageWithDPI(pageNumber, 190, ImageType.RGB);
-                                                XWPFParagraph p11 = submittalDoc.createParagraph();
-                                                p11.setAlignment(ParagraphAlignment.RIGHT);
-
-                                                XWPFRun picRun = p11.createRun();
-
-                                                CTShd cTShd = picRun.getCTR().addNewRPr().addNewShd();
-                                                cTShd.setVal(STShd.CLEAR);
-                                                cTShd.setColor("auto");
-                                                cTShd.setFill("FFFF9e");
-
-                                                picRun.addBreak(BreakType.PAGE);
-                                                picRun.setFontSize(14);
-                                                picRun.setText(mainHeader + "  /" + /*(curNum - 1) + "-" + String.valueOf((char) (subNumber + 64)) +*/ subHeader);
-
-                                                JPEGImageWriteParam jpegParams = new JPEGImageWriteParam(null);
-                                                jpegParams.setCompressionMode(ImageWriteParam.MODE_EXPLICIT);
-                                                jpegParams.setCompressionQuality(1f);
-
-
-                                                FileImageOutputStream fos = new FileImageOutputStream(
-                                                        new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\tempImages\\imgFile" + j + pageNumber + ".jpg"));
-
-                                                writer.setOutput(fos);
-
-                                                int w = image.getWidth();
-                                                int h = image.getHeight();
-                                                BufferedImage newJpg = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
-                                                int[] rgb = image.getRGB(0, 0, w, h, null, 0, w);
-                                                newJpg.setRGB(0, 0, w, h, rgb, 0, w);
-                                                writer.write(null, new IIOImage(image, null, null), jpegParams);
-
-                                                File picFile = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\tempImages\\imgFile" + j + pageNumber + ".jpg");
-                                                FileInputStream inputStream = new FileInputStream(picFile);
-
-                                                picRun.addPicture(inputStream, XWPFDocument.PICTURE_TYPE_JPEG, subSheets.get(j), Units.toEMU(610), Units.toEMU(770));
-                                                writer.reset();
-                                                inputStream.close();
-                                                fos.close();
-                                                pageNumber++;
-                                            }
-                                            document.close();
-                                        } else {
-                                            System.err.println(sourceFile.getName() + " File doesn't exist");
-                                        }
-                                    } catch (Exception pdfNot) {
-                                        pdfNot.printStackTrace();
-                                        System.out.println("pdf recognized but cant do anything");
-                                    }
-                                }
-                            } catch (Exception notFile) {
-                                System.err.println(notFile);
-                            }
-                        }
-                    }
-                    subNumber = 0;
-                    list.clear();
-                }
-
-                if (i != subSheets.size() - 1) {
-                    XWPFParagraph p11 = submittalDoc.createParagraph();
-                    p11.setAlignment(ParagraphAlignment.LEFT);
-                    p11.setVerticalAlignment(TextAlignment.TOP);
-                    p11.setSpacingAfter(0);
-                    p11.setSpacingBefore(0);
-
-                    XWPFRun r13 = p11.createRun();
-                    r13.setFontSize(20);
-                    r13.setFontFamily("Calibri (Body)");
-
-                    r13.addBreak(BreakType.PAGE);
-                    r13.getCTR().insertNewBr(1);
-                    r13.getCTR().insertNewBr(1);
-                    r13.getCTR().insertNewBr(1);
-                    r13.getCTR().insertNewBr(1);
-                    r13.getCTR().insertNewBr(1);
-                    r13.getCTR().insertNewBr(1);
-                    r13.getCTR().insertNewBr(1);
-                    r13.getCTR().insertNewBr(1);
-                    r13.getCTR().insertNewBr(1);
-
-                    curNumString = "                " + curNum + ")      ";
-                    r13.setBold(true);
-                    r13.setText(curNumString + subSheets.get(i));
-                    r13.setBold(true);
-                    curSubNum = 1;
-                    curNum += 1;
-                }
-                lastMain = i;
-
-                mainHeader = subSheets.get(i);
-
-            } else if (subSheets.get(i).substring(0, 2).equals("  ") && !subSheets.get(i).substring(0, 4).equals("    ")) {
-
-                list.add(numDocs);
-                numDocs = 0;
-                newCat = true;
-
-                if (subSheets.get(i + 1).contains("SP&S")) {
-                    int curSouthSub = curSubNum;
-                    for (int s = 0; s < southernList.size(); s++) {
-                        XWPFParagraph p11 = submittalDoc.createParagraph();
-                        p11.setSpacingAfter(0);
-                        p11.setSpacingBefore(0);
-
-                        XWPFRun r14 = p11.createRun();
-                        r14.setFontSize(16);
-                        r14.setFontFamily("Calibri (Body)");
-
-                        r14.getCTR().insertNewBr(1);
-
-                        curNumString = "                    " + String.valueOf((char) (curSouthSub + 64)) + ". ";
-                        r14.setText(curNumString + southernList.get(s));
-                        curSouthSub += 1;
-                    }
-                } else {
-                    XWPFParagraph p11 = submittalDoc.createParagraph();
-                    p11.setSpacingAfter(0);
-                    p11.setSpacingBefore(0);
-
-                    XWPFRun r14 = p11.createRun();
-                    r14.setFontSize(16);
-                    r14.setFontFamily("Calibri (Body)");
-
-                    r14.getCTR().insertNewBr(1);
-
-                    curNumString = "                    " /*+ String.valueOf((char) (curSubNum + 64)) + ". "*/;
-                    r14.setText(curNumString + subSheets.get(i));
-                    curSubNum += 1;
-                }
-
-            } else {
-                numDocs++;
-                XWPFParagraph p11 = submittalDoc.createParagraph();
-                p11.setSpacingAfter(0);
-                p11.setSpacingBefore(0);
-
-                XWPFRun r15 = p11.createRun();
-                r15.setFontSize(12);
-                r15.setFontFamily("Calibri (Body)");
-
-                if (newCat) {
-                    r15.getCTR().insertNewBr(1);
-                }
-
-                slashIndex = subSheets.get(i).lastIndexOf('\\') + 1;
-                dotIndex = subSheets.get(i).lastIndexOf('.');
-                if (subSheets.get(i).contains(slash)) {
-                    file = subSheets.get(i).substring(slashIndex, dotIndex);
-                } else {
-                    file = subSheets.get(i);
-                }
-                r15.setText("                                   " + file);
-                newCat = false;
-            }
-        }
 
         try {
-            FileOutputStream out;
-            if(volume.equals("")) {
-                out = new FileOutputStream("Saves\\" + job + "\\" + job + " Submittal.docx");
-            } else {
-                File volumeFolder = new File("Saves\\" + job + "\\" + volume);
-                if(!volumeFolder.exists()) {
-                    volumeFolder.mkdirs();
-                }
-                out = new FileOutputStream("Saves\\" + job + "\\" + volume + "\\" + job + " " + volume + " Submittal.docx");
-            }
-            submittalDoc.write(out);
-            submittalDoc.close();
-        } catch (Exception f) {
-            System.err.println();
+            mainIndexDoc.write(new FileOutputStream("MainIndexDoc.docx"));
+        } catch(IOException mainIndexIO) {
+            System.out.println("IO Exception for mainIndexDoc");
         }
+
+        traverseOutline(root, 0, null, null);
 
         SubGenApp.window.close();
 
         File tempFolder = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\tempImages");
-        //File ocrTempFolder = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\ocrTempImages");
 
         File[] files = tempFolder.listFiles();
         for(File it: files) {
             it.delete();
         }
-        //FileUtils.cleanDirectory(ocrTempFolder);
+    }
+
+    private static void traverseOutline(TreeItem<String> node, int level, ArrayList<PDDocument> sectionList, XWPFDocument sectionIndex) {
+
+        if(level == 1) {
+            sectionList = new ArrayList<>();
+
+            sectionIndex = new XWPFDocument();
+            XWPFParagraph paragraph = sectionIndex.createParagraph();
+            paragraph.setAlignment(ParagraphAlignment.LEFT);
+            paragraph.setVerticalAlignment(TextAlignment.TOP);
+            paragraph.setIndentationLeft(540);
+
+            XWPFRun run = paragraph.createRun();
+            run.setFontSize(20);
+            run.setFontFamily("Calibri (Body)");
+
+            run.setBold(true);
+            run.setText((node.getParent().getChildren().indexOf(node)+1) + ") " + node.getValue());
+
+        } else if(level == 2) {
+
+            XWPFParagraph paragraph = sectionIndex.createParagraph();
+            paragraph.setIndentationLeft(1080);
+            XWPFRun run = paragraph.createRun();
+            run.setFontSize(16);
+            run.setFontFamily("Calibri (Body)");
+            run.getCTR().insertNewBr(1);
+            run.setText(node.getValue());
+        } else if(level == 3) {
+
+            XWPFParagraph paragraph = sectionIndex.createParagraph();
+            paragraph.setIndentationLeft(1260);
+            XWPFRun run = paragraph.createRun();
+            run.setFontSize(12);
+            run.setFontFamily("Calibri (Body)");
+            run.getCTR().insertNewBr(1);
+            if(node.getParent().getChildren().indexOf(node) == 0) {
+                run.getCTR().insertNewBr(1);
+            }
+            int slashIndex = node.getValue().lastIndexOf('\\') + 1;
+            int dotIndex = node.getValue().lastIndexOf('.');
+            String subFileName = node.getValue().substring(slashIndex, dotIndex);
+            run.setText(subFileName);
+
+            File sourceFile = new File(node.getValue());
+            if(sourceFile.exists()) {
+
+                try {
+
+                    PDDocument document = PDDocument.load(sourceFile);
+                    int totalPages = document.getNumberOfPages();
+                    for (int k = 0; k < totalPages; k++) {
+                        PDPage page = document.getPage(k);
+                        List<PDAnnotation> annotations = page.getAnnotations();
+                        float pw = page.getMediaBox().getUpperRightX();
+                        float ph = page.getMediaBox().getUpperRightY();
+                        System.out.println(subFileName);
+
+                        PDFont font = PDType1Font.HELVETICA_BOLD;
+                        try (PDPageContentStream contents = new PDPageContentStream(document, page, true, false, true))
+                        {
+                            String header = node.getParent().getParent().getValue() + "  /" + node.getParent().getValue();
+                            float textWidth = font.getStringWidth(header) / 1000 * 15;
+                            contents.beginText();
+                            contents.setFont(font, 15);
+                            contents.newLineAtOffset(pw - (textWidth + 6), ph - 14);
+                            contents.showText(header);
+                            contents.endText();
+
+                            PDAnnotationTextMarkup highlight = new PDAnnotationTextMarkup(PDAnnotationTextMarkup.SUB_TYPE_HIGHLIGHT);
+                            PDRectangle position = new PDRectangle();
+                            position.setLowerLeftX(pw - (textWidth + 12));
+                            position.setLowerLeftY(ph - 18);
+                            position.setUpperRightX(pw);
+                            position.setUpperRightY(ph);
+                            highlight.setRectangle(position);
+                            highlight.setConstantOpacity((float) 1.0);
+
+                            float[] quadPoints = new float[]{pw - (textWidth + 12), ph, pw, ph, pw - (textWidth + 12), ph - 18, pw, ph - 18};
+
+                            highlight.setQuadPoints(quadPoints);
+                            PDColor yellow = new PDColor(new float[]{1, 1, 80 / 255F}, PDDeviceRGB.INSTANCE);
+                            highlight.setColor(yellow);
+                            annotations.add(highlight);
+                        }
+                    }
+                    sectionList.add(document);
+
+                } catch(Exception docException) {}
+            }
+
+            if(node.getParent().getChildren().indexOf(node) == node.getParent().getChildren().size()-1
+                    && node.getParent().getParent().getChildren().indexOf(node.getParent()) == node.getParent().getParent().getChildren().size()-1) {
+
+                System.out.println("hello??");
+
+                try {
+                    sectionIndex.write(new FileOutputStream(node.getParent().getParent().getValue() + ".docx"));
+                    sectionIndex.close();
+                    submittalSections.add(sectionList);
+
+                    System.out.print("!!!!!!!!!!!!" + node.getParent().getParent().getValue());
+                } catch(IOException e) {}
+            }
+        }
+
+        if(level < 3) {
+            for (TreeItem<String> it : node.getChildren()) {
+
+                if (level == 0) {
+                    System.out.println("hello0");
+                    traverseOutline(it, level + 1, null, null);
+                } else if (level == 1) {
+                    System.out.println("hello1");
+                    traverseOutline(it, level + 1, sectionList, sectionIndex);
+                } else if (level == 2) {
+                    System.out.println("hello2");
+                    traverseOutline(it, level + 1, sectionList, sectionIndex);
+                }
+            }
+        }
     }
 
 }

@@ -199,11 +199,9 @@ public class OutlineWindow {
         root = loadRoot;
     }
 
-
-    public static void traverse(TreeItem<String> node, int level) {
+    public static void createListFromTree(TreeItem<String> node, int level) {
 
         String space;
-        int num = level;
 
         if(level == 3) {
             space = "    ";
@@ -214,9 +212,9 @@ public class OutlineWindow {
         }
         contentList.add(space + node.getValue());
 
-        for(TreeItem<String> it : node.getChildren()) {
-            if(level < 3) {
-                traverse(it, level + 1);
+        if(level < 3) {
+            for (TreeItem<String> it : node.getChildren()) {
+                createListFromTree(it, level + 1);
             }
         }
 
