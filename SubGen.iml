@@ -25,5 +25,9 @@
     <orderEntry type="library" name="KotlinJavaRuntime" level="project" />
     <orderEntry type="library" name="docx4j-6.0.1" level="project" />
     <orderEntry type="library" name="Docx4j-dependencies" level="project" />
+    <orderEntry type="library" name="fr.opensagres.poi.xwpf.converter.pdf-2.0.1" level="project" />
+    <orderEntry type="library" name="fr.opensagres.poi.xwpf.converter.core-2.0.1" level="project" />
+    <orderEntry type="library" name="itext-2.1.7" level="project" />
+    <orderEntry type="library" name="fr.opensagres.xdocreport.itext.extension-2.0.1" level="project" />
   </component>
 </module>

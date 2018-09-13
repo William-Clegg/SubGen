@@ -7,5 +7,6 @@ module SubGen {
     requires poiMerge;
     requires kotlin.stdlib;
     requires xmlbeans;
+    requires fr.opensagres.poi.xwpf.converter.pdf;
     exports com.company to javafx.graphics;
 }

@@ -107,15 +107,17 @@ class GeneralProcessing {
             }
         }
 
-        coverPageDoc.write((FileOutputStream("NewCoverPage.docx")))
-        coverPageDoc.close()
+        val sp = SubmittalProcessing()
+        sp.convertToPdf(coverPageDoc, "coverPage")
 
+        /*
         val sectPr = generalInfoDoc.document.body.addNewSectPr()
         val pageMar = sectPr.addNewPgMar()
         pageMar.left = BigInteger.valueOf(600L)
         pageMar.top = BigInteger.valueOf(600L)
         pageMar.right = BigInteger.valueOf(600L)
         pageMar.bottom = BigInteger.valueOf(600L)
+        */
 
         val p3 = generalInfoDoc.createParagraph()
         p3.alignment = ParagraphAlignment.CENTER
@@ -162,7 +164,6 @@ class GeneralProcessing {
         proAdd2.ctr.insertNewBr(1)
         proAdd2.setText(jobAdd2)
         p4.spacingAfter = 1
-
 
         val p5 = generalInfoDoc.createParagraph()
         p5.alignment = ParagraphAlignment.LEFT
@@ -277,13 +278,13 @@ class GeneralProcessing {
         stascoPhone.fontFamily = "Calibri (Body)"
         stascoPhone.ctr.insertNewBr(1)
         stascoPhone.setText("770-422-7118")
-        stascoPhone.addBreak(BreakType.PAGE)
 
+        val sp1 = SubmittalProcessing()
+        generalInfoDoc.createNumbering()
         generalInfoDoc.write((FileOutputStream("GeneralInfoPage.docx")))
-        generalInfoDoc.close()
+        sp1.convertToPdf(generalInfoDoc, "genInfo")
 
         val submittalSheetProcessor = SubmittalProcessing()
         submittalSheetProcessor.processSubmittalContent()
-
     }
 }
