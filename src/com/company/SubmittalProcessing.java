@@ -353,7 +353,7 @@ public class SubmittalProcessing {
         PDPage mainIndex = completeDoc.getPages().get(currentPage);
         currentPage += mainIndexPages;
 
-        PDPageDestination dest = new PDPageFitHeightDestination();
+        PDPageDestination dest = new PDPageFitWidthDestination();
         dest.setPage(mainIndex);
         PDOutlineItem mainIndexItem = new PDOutlineItem();
         mainIndexItem.setTitle("Main Contents");
@@ -361,36 +361,62 @@ public class SubmittalProcessing {
         PDroot.addLast(mainIndexItem);
         outline.openNode();
         PDroot.openNode();
-/*
-        for(int i = 0; i < submittalSections.size(); i++) {
 
-            PDPage subIndex = completeDoc.getPages().get(currentPage);
+        for(int i = 0; i < root.getChildren().size(); i++) {
 
-            PDPageDestination subDest = new PDPageFitHeightDestination();
-            subDest.setPage(subIndex);
-            PDOutlineItem subIndexItem = new PDOutlineItem();
-            mainIndexItem.setTitle(root.getChildren().get(i).getValue());
-            mainIndexItem.setDestination(subDest);
-            PDroot.addLast(subIndexItem);
+            System.out.println("i = " + i);
+            PDPage sectionIndex = completeDoc.getPages().get(currentPage);
+
+            PDPageDestination sectionDest = new PDPageFitWidthDestination();
+            sectionDest.setPage(sectionIndex);
+            PDOutlineItem sectionIndexItem = new PDOutlineItem();
+            sectionIndexItem.setTitle(root.getChildren().get(i).getValue());
+            sectionIndexItem.setDestination(sectionDest);
+            PDroot.addLast(sectionIndexItem);
+            sectionIndexItem.openNode();
+
+            /*
+            for(PDDocument doc : submittalSections.get(i)) {
+                currentPage += doc.getNumberOfPages();
+            }*/
             currentPage += subIndexPages.get(i);
+
+
+
 
             for(int j = 0; j < root.getChildren().get(i).getChildren().size(); j++) {
 
+                System.out.println("j = " + j + " " + (root.getChildren().get(i).getChildren().size()-1) + " " + root.getChildren().get(i).getChildren().get(j).getValue());
+                PDPage subIndex = completeDoc.getPages().get(currentPage);
+
+                PDPageDestination subDest = new PDPageFitWidthDestination();
+                subDest.setPage(subIndex);
+                PDOutlineItem subItem = new PDOutlineItem();
+                subItem.setTitle(root.getChildren().get(i).getChildren().get(j).getValue());
+                subItem.setDestination(subDest);
+                sectionIndexItem.addLast(subItem);
+
                 for(int k = 0; k < root.getChildren().get(i).getChildren().get(j).getChildren().size(); k++) {
 
+                    System.out.println("k = " + k);
                     PDPage subSheet = completeDoc.getPages().get(currentPage);
 
-                    PDPageDestination sheetDest = new PDPageFitHeightDestination();
+                    PDPageDestination sheetDest = new PDPageFitWidthDestination();
                     sheetDest.setPage(subSheet);
                     PDOutlineItem subSheetItem = new PDOutlineItem();
-                    subSheetItem.setTitle(root.getChildren().get(i).getChildren().get(j).getChildren().get(k).getValue());
+                    String fullPath = root.getChildren().get(i).getChildren().get(j).getChildren().get(k).getValue();
+                    subSheetItem.setTitle(fullPath.substring(fullPath.lastIndexOf('\\')+1, fullPath.lastIndexOf('.')));
+                    System.out.println(fullPath.substring(fullPath.lastIndexOf('\\')+1, fullPath.lastIndexOf('.')));
                     subSheetItem.setDestination(sheetDest);
-                    subIndexItem.addLast(subSheetItem);
-                    num += k;
+                    subItem.addLast(subSheetItem);
+                    System.out.println(currentPage);
+                    System.out.println(submittalSections.get(i).get(k).getNumberOfPages());
                     currentPage += submittalSections.get(i).get(num).getNumberOfPages();
+                    num+=k;
                 }
             }
-        }*/
+            num = 0;
+        }
 
         try {
             completeDoc.save("CompleteSubmittal.pdf");
