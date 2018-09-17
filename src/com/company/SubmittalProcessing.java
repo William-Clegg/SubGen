@@ -364,7 +364,6 @@ public class SubmittalProcessing {
 
         for(int i = 0; i < root.getChildren().size(); i++) {
 
-            System.out.println("i = " + i);
             PDPage sectionIndex = completeDoc.getPages().get(currentPage);
 
             PDPageDestination sectionDest = new PDPageFitWidthDestination();
@@ -374,19 +373,10 @@ public class SubmittalProcessing {
             sectionIndexItem.setDestination(sectionDest);
             PDroot.addLast(sectionIndexItem);
             sectionIndexItem.openNode();
-
-            /*
-            for(PDDocument doc : submittalSections.get(i)) {
-                currentPage += doc.getNumberOfPages();
-            }*/
             currentPage += subIndexPages.get(i);
-
-
-
 
             for(int j = 0; j < root.getChildren().get(i).getChildren().size(); j++) {
 
-                System.out.println("j = " + j + " " + (root.getChildren().get(i).getChildren().size()-1) + " " + root.getChildren().get(i).getChildren().get(j).getValue());
                 PDPage subIndex = completeDoc.getPages().get(currentPage);
 
                 PDPageDestination subDest = new PDPageFitWidthDestination();
@@ -398,7 +388,6 @@ public class SubmittalProcessing {
 
                 for(int k = 0; k < root.getChildren().get(i).getChildren().get(j).getChildren().size(); k++) {
 
-                    System.out.println("k = " + k);
                     PDPage subSheet = completeDoc.getPages().get(currentPage);
 
                     PDPageDestination sheetDest = new PDPageFitWidthDestination();
@@ -406,13 +395,10 @@ public class SubmittalProcessing {
                     PDOutlineItem subSheetItem = new PDOutlineItem();
                     String fullPath = root.getChildren().get(i).getChildren().get(j).getChildren().get(k).getValue();
                     subSheetItem.setTitle(fullPath.substring(fullPath.lastIndexOf('\\')+1, fullPath.lastIndexOf('.')));
-                    System.out.println(fullPath.substring(fullPath.lastIndexOf('\\')+1, fullPath.lastIndexOf('.')));
                     subSheetItem.setDestination(sheetDest);
                     subItem.addLast(subSheetItem);
-                    System.out.println(currentPage);
-                    System.out.println(submittalSections.get(i).get(k).getNumberOfPages());
                     currentPage += submittalSections.get(i).get(num).getNumberOfPages();
-                    num+=k;
+                    num+=1;
                 }
             }
             num = 0;
