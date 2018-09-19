@@ -57,6 +57,8 @@ public class AutoSave extends ProjectInfoWindow{
             contentList = (ArrayList<String>) ois.readObject();
             System.out.println("The list of Strings " + contentList.toString());
 
+            treeView.getRoot().getChildren().clear();
+
             for(int i = 0; i < contentList.size(); i++) {
 
                 if(contentList.get(i).substring(0,4).equals("    ")) {
@@ -145,7 +147,9 @@ public class AutoSave extends ProjectInfoWindow{
             if(volume.equals("")) {
                 fos = new FileOutputStream(saveInfo + "\\ProjectInfo.ser");
             } else {
-                fos = new FileOutputStream(saveInfo + "\\" + volume + "\\ProjectInfo.ser");
+                File volSaveInfo = new File("Saves\\" + job + "\\" + volume);
+                volSaveInfo.getParentFile().mkdirs();
+                fos = new FileOutputStream(volSaveInfo + "\\ProjectInfo.ser");
             }
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(savedInfo);

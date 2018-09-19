@@ -1,6 +1,12 @@
 package com.company
 
 import Windows.ProjectInfoWindow.*
+import org.apache.pdfbox.contentstream.PDContentStream
+import org.apache.pdfbox.pdmodel.PDDocument
+import org.apache.pdfbox.pdmodel.PDPage
+import org.apache.pdfbox.pdmodel.PDPageContentStream
+import org.apache.pdfbox.pdmodel.font.PDType1Font
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
 import org.apache.poi.util.Units
 import org.apache.poi.xwpf.usermodel.*
 import org.apache.xmlbeans.XmlObject
@@ -10,14 +16,86 @@ import java.math.BigInteger
 import javax.imageio.ImageIO
 import  org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
 import java.io.FileOutputStream
+import org.apache.poi.xwpf.usermodel.XWPFRun
+import org.apache.poi.xwpf.usermodel.XWPFParagraph
+
+
 
 class GeneralProcessing {
 
-    private var coverPageDoc = XWPFDocument(FileInputStream("CoverPage.docx"))
+    //private var coverPageDoc = XWPFDocument(FileInputStream("CoverPage.docx"))
+    private var coverPageDoc = PDDocument()
     private var generalInfoDoc = XWPFDocument()
 
     fun createSubmittal() {
 
+
+        coverPageDoc.addPage(PDPage())
+        val page = coverPageDoc.getPage(0)
+        val pw = page.mediaBox.upperRightX
+        val ph = page.mediaBox.upperRightY
+        val font = PDType1Font.HELVETICA_BOLD
+        val pdImage = PDImageXObject.createFromFile(imgPath, coverPageDoc)
+        val contentStream = PDPageContentStream(coverPageDoc, page, PDPageContentStream.AppendMode.APPEND, false)
+        val bimg = ImageIO.read(File(imgPath))
+        val height = bimg.height.toDouble()
+        val width = bimg.width
+        val adjustment = 220 / height
+        println("height " + height + " width " + width + "  " + imgPath)
+        contentStream.drawImage(pdImage, pw/11, (ph/1.5).toFloat(), (width*adjustment).toFloat(),220.toFloat())
+
+        var textLength = font.getStringWidth("Plumbing Submittal") / 1000 * 32
+        contentStream.beginText()
+        contentStream.setFont(font, 32.toFloat())
+        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/1.8).toFloat())
+        contentStream.showText("Plumbing Submittal")
+        contentStream.endText()
+
+        textLength = font.getStringWidth("For") / 1000 * 24
+        contentStream.beginText()
+        contentStream.setFont(font, 24.toFloat())
+        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/2.2).toFloat())
+        contentStream.showText("For")
+        contentStream.endText()
+
+        textLength = font.getStringWidth(job) / 1000 * 48
+        contentStream.beginText()
+        contentStream.setFont(font, 48.toFloat())
+        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/2.8).toFloat())
+        contentStream.showText(job)
+        contentStream.endText()
+
+        if(!volume.equals("")) {
+            textLength = font.getStringWidth(volume) / 1000 * 28
+            contentStream.beginText()
+            contentStream.setFont(font, 28.toFloat())
+            contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/3.2).toFloat())
+            contentStream.showText(volume)
+            contentStream.endText()
+        }
+
+        if(!date.equals("")) {
+            textLength = font.getStringWidth(date) / 1000 * 22
+            contentStream.beginText()
+            contentStream.setFont(font, 22.toFloat())
+            contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/3.4).toFloat())
+            contentStream.showText(date)
+            contentStream.endText()
+        }
+
+        textLength = font.getStringWidth("Prepared By Stasco Mechanical") / 1000 * 24
+        contentStream.beginText()
+        contentStream.setFont(font, 24.toFloat())
+        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/11))
+        contentStream.showText("Prepared By Stasco Mechanical")
+        contentStream.endText()
+        contentStream.close()
+
+
+        coverPageDoc.save("temp\\PictureDocument.pdf")
+        coverPageDoc.close()
+
+        /*
         val p = coverPageDoc.paragraphs[0]
         p.alignment = ParagraphAlignment.LEFT
         val r = p.runs.get(0)
@@ -42,82 +120,63 @@ class GeneralProcessing {
         val volumeString = "4"
         val dateString = "5"
 
-        for (paragraph:XWPFParagraph in coverPageDoc.paragraphs) {
+        for (thisParagraph:XWPFParagraph in coverPageDoc.getParagraphs()) {
+            val runs = thisParagraph.getRuns()
+            if (runs != null) {
+                for (run:XWPFRun in runs) {
+                    var text = run.getText(0)
+                    if (text != null) {
+                        if(text.contains(titleString)) {
+                            text = text.replace(titleString, "Submittal Thing")
+                            run.setText(text, 0)
+                        } else if(text.contains(projectString)) {
+                            text = text.replace(projectString, "Coca-Cola Warehouse")
+                            run.setText(text, 0)
+                            run.isBold = true
 
-            val cursor = paragraph.ctp.newCursor()
-            cursor.selectPath("declare namespace w='http://schemas.openxmlformats.org/wordprocessingml/2006/main' .//*/w:txbxContent/w:p/w:r")
+                        } else if(text.contains(volumeString)) {
 
-            val ctrsInTextBox = ArrayList<XmlObject>()
+                            if (volumeCheck.isSelected) {
+                                text = text.replace(volumeString, volume)
+                                run.setText(text, 0)
+                                run.isBold = true
 
-            while(cursor.hasNextSelection()) {
-                cursor.toNextSelection()
-                val obj = cursor.`object`
-                ctrsInTextBox.add(obj)
-            }
+                                run.fontSize = 28
+                                run.fontFamily = "Calibri (Body)"
+                                run.underline = UnderlinePatterns.SINGLE
+                            } else {
+                                text = text.replace(volumeString, "")
+                                run.setText(text, 0)
+                            }
+                        } else if(text.contains(dateString)) {
 
-            for(obj:XmlObject in ctrsInTextBox) {
-                val ctr = CTR.Factory.parse(obj.toString())
-                val bufferRun = XWPFRun(ctr, paragraph as IRunBody)
-                var text = bufferRun.getText(0)
-                println(text)
-                if(text != null) {
-                    if(text.contains(titleString)) {
-                        text = text.replace(titleString, "Submittal Thing")
-                        bufferRun.setText(text, 0)
-                    } else if(text.contains(projectString)) {
-                        text = text.replace(projectString, "Coca-Cola Warehouse")
-                        bufferRun.setText(text, 0)
-                        bufferRun.isBold = true
+                            if (dateCheck.isSelected) {
+                                text = text.replace(dateString, date)
+                                run.setText(text, 0)
+                                run.isBold = true
 
-                    } else if(text.contains(volumeString)) {
+                                run.fontSize = 18
+                                run.fontFamily = "Calibri (Body)"
 
-                        if (volumeCheck.isSelected) {
-                            text = text.replace(volumeString, volume)
-                            bufferRun.setText(text, 0)
-                            bufferRun.isBold = true
+                            } else {
 
-                            bufferRun.fontSize = 28
-                            bufferRun.fontFamily = "Calibri (Body)"
-                            bufferRun.underline = UnderlinePatterns.SINGLE
-                        } else {
-                            text = text.replace(volumeString, "")
-                            bufferRun.setText(text, 0)
+                                text = text.replace(dateString, "")
+                                run.setText(text, 0)
+                            }
+                        } else if(text.contains(authorString)) {
+                            text = text.replace(authorString, "Prepared by Stasco Mechanical Contractors")
+                            run.setText(text, 0)
                         }
-                    } else if(text.contains(dateString)) {
-
-                        if (dateCheck.isSelected) {
-                            text = text.replace(dateString, date)
-                            bufferRun.setText(text, 0)
-                            bufferRun.isBold = true
-
-                            bufferRun.fontSize = 18
-                            bufferRun.fontFamily = "Calibri (Body)"
-
-                        } else {
-
-                            text = text.replace(dateString, "")
-                            bufferRun.setText(text, 0)
-                        }
-                    } else if(text.contains(authorString)) {
-                        text = text.replace(authorString, "Prepared by Stasco Mechanical Contractors")
-                        bufferRun.setText(text, 0)
                     }
                 }
-                obj.set(bufferRun.ctr)
             }
         }
+
 
         val sp = SubmittalProcessing()
         sp.convertToPdf(coverPageDoc, "coverPage")
 
-        /*
-        val sectPr = generalInfoDoc.document.body.addNewSectPr()
-        val pageMar = sectPr.addNewPgMar()
-        pageMar.left = BigInteger.valueOf(600L)
-        pageMar.top = BigInteger.valueOf(600L)
-        pageMar.right = BigInteger.valueOf(600L)
-        pageMar.bottom = BigInteger.valueOf(600L)
-        */
+       */
 
         val p3 = generalInfoDoc.createParagraph()
         p3.alignment = ParagraphAlignment.CENTER

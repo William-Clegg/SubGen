@@ -28,9 +28,11 @@ public class ProjectInfoWindow {
 
     public static String job, jobAdd1, jobAdd2, architectName, architectAdd1, architectAdd2, architectPhone,
             genConName, genConAdd1, genConAdd2, genConPhone, imgPath, date, volume;
+    public static boolean pageNumbers;
     public static TextField pnField, pAdd1, pAdd2, archNameField, aAdd1, aAdd2, archPhoneField, gcNameField, gAdd1, gAdd2, gcPhoneField;
     public static CheckBox dateCheck;
     public static CheckBox volumeCheck;
+    public static CheckBox pageNumbersCheck;
 
     public static GridPane createGrid() {
         GridPane grid = new GridPane();
@@ -287,6 +289,20 @@ public class ProjectInfoWindow {
             @Override
             public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
                 volumeText.setVisible(newValue);
+            }
+        });
+
+        Label pageNumbersLabel = new Label();
+        pageNumbersLabel.setText("Include page numbers");
+        grid.add(pageNumbersLabel,5,12);
+
+        pageNumbersCheck = new CheckBox();
+        grid.add(pageNumbersCheck,6,12);
+
+        pageNumbersCheck.selectedProperty().addListener(new ChangeListener<Boolean>() {
+            @Override
+            public void changed(ObservableValue<? extends Boolean> observable, Boolean oldValue, Boolean newValue) {
+                pageNumbers = true;
             }
         });
 

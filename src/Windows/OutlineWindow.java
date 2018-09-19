@@ -119,13 +119,14 @@ public class OutlineWindow {
          *  Adding button to initial submittal generation. Found in SubmittalProcessing.java.
          */
 
-        Button button = new Button();
-        button.setText("Create Submittal");
+        Button createSubmittalButton = new Button();
+        createSubmittalButton.setText("Create Submittal");
         HBox nextBtn = new HBox(10);
-        nextBtn.getChildren().add(button);
+        nextBtn.getChildren().add(createSubmittalButton);
         grid.add(nextBtn, 4, 9);
 
-        button.setOnAction(e -> {
+        createSubmittalButton.setOnAction(e -> {
+            listAddSave();
             GeneralProcessing generalProcessor = new GeneralProcessing();
             generalProcessor.createSubmittal();
         });

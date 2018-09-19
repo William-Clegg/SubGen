@@ -20,6 +20,7 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
+import org.apache.pdfbox.util.Matrix;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
@@ -29,6 +30,9 @@ import java.awt.*;
 import java.io.*;
 import java.math.BigInteger;
 import java.nio.CharBuffer;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,6 +51,7 @@ public class SubmittalProcessing {
     private static ArrayList<ArrayList<PDDocument>> submittalSections = new ArrayList<>();
 
     static int num = 0;
+    static int otherNum = 0;
     private static int mainIndexPages;
     private static ArrayList<Integer> subIndexPages = new ArrayList<>();
 
@@ -136,13 +141,89 @@ public class SubmittalProcessing {
         mergePages(submittalSections);
 
         try {
-            PDDocument completeDoc = PDDocument.load(new File("CompleteSubmittal.pdf"));
+            PDDocument completeDoc = PDDocument.load(new File("temp\\mergedSubmittal.pdf"));
             setBoookmarks(completeDoc);
-        } catch(Exception exc) {}
+        }catch(IOException e) {
+            System.err.println("IO Error in bookmarking");
+        }
+
+        try {
+            PDDocument completeDoc = PDDocument.load(new File("temp\\mergedSubmittal.pdf"));
+
+            if(volume.equals("")) {
+                File path = new File("Saves\\" + job);
+                path.mkdirs();
+                completeDoc.save(path + "\\" + job + " Plubming Submittal Stasco.pdf");
+            } else {
+                File path = new File("Saves\\" + job + "\\" + volume);
+                path.mkdirs();
+                completeDoc.save(path + "\\" + job + " " + volume + " Plubming Submittal Stasco.pdf");
+            }
+
+            if(pageNumbers) {
+                for (int i = 0; i < completeDoc.getPages().getCount(); i++) {
+
+                    PDPage page = completeDoc.getPages().get(i);
+                    float pw = page.getMediaBox().getUpperRightX();
+                    float ph = page.getMediaBox().getUpperRightY();
+
+                    PDPageContentStream pageNumberBackground = new PDPageContentStream(completeDoc, page, true, false, true);
+                    pageNumberBackground.setNonStrokingColor(Color.YELLOW);
+                    if(page.getRotation() == 90) {
+                        pageNumberBackground.addRect(pw - 20, ph-25, 20, 30);
+                    } else {
+                        pageNumberBackground.addRect(pw - 25, 0, 50, 20);
+                    }
+                    pageNumberBackground.fill();
+                    pageNumberBackground.close();
+
+                    PDFont font = PDType1Font.HELVETICA_BOLD;
+                    PDPageContentStream pageNum = new PDPageContentStream(completeDoc, page, true, false, true);
+                    pageNum.beginText();
+                    pageNum.setFont(font, 12);
+                    if(page.getRotation() == 90) {
+                        if (i < 9) {
+                            pageNum.setTextMatrix(Matrix.getRotateInstance(1.5708, pw - 6, ph - 12));
+                        } else if (i < 99) {
+                            pageNum.setTextMatrix(Matrix.getRotateInstance(1.5708, pw - 6, ph - 18));
+                        } else {
+                            pageNum.setTextMatrix(Matrix.getRotateInstance(1.5708, pw - 6, ph - 22));
+                        }
+                    } else {
+                        if (i < 9) {
+                            pageNum.newLineAtOffset(pw - 16, 6);
+                        } else if (i < 99) {
+                            pageNum.newLineAtOffset(pw - 19, 6);
+                        } else {
+                            pageNum.newLineAtOffset(pw - 23, 6);
+                        }
+                    }
+                    pageNum.showText("" + (i + 1));
+                    pageNum.endText();
+                    pageNum.close();
+                }
+                if(volume.equals("")) {
+                    File path = new File("Saves\\" + job);
+                    path.mkdirs();
+                    completeDoc.save(path + "\\" + job + " FOR PRINTING Plubming Submittal Stasco.pdf");
+                } else {
+                    File path = new File("Saves\\" + job + "\\" + volume);
+                    path.mkdirs();
+                    completeDoc.save(path + "\\" + job + " " + volume + " FOR PRINTING Plubming Submittal Stasco.pdf");
+                }
+            }
+            completeDoc.close();
+
+        } catch(IOException exc) {
+            for(int i = 0; i < exc.getStackTrace().length; i++) {
+                System.err.println(exc.getStackTrace()[i]);
+            }
+        }
 
         SubGenApp.window.close();
 
         File tempFolder = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\temp");
+
 
         for(File file: tempFolder.listFiles()) {
             file.delete();
@@ -209,31 +290,47 @@ public class SubmittalProcessing {
                         PDFont font = PDType1Font.HELVETICA_BOLD;
                         try
                         {
+
                             String header = node.getParent().getParent().getValue() + "  /  " + node.getParent().getValue();
                             float textWidth = font.getStringWidth(header) / 1000 * 12;
 
                             PDPageContentStream rectangle = new PDPageContentStream(document, page, true, false, true);
                             rectangle.setNonStrokingColor(Color.YELLOW);
-                            rectangle.addRect(pw - (textWidth + 7),ph-16,textWidth + 10,30);
+                            if(page.getRotation() == 90) {
+                                rectangle.addRect(0, ph - (textWidth + 7), 20, textWidth + 10);
+                            } else {
+                                rectangle.addRect(pw - (textWidth + 7), ph - 16, textWidth + 10, 30);
+                            }
                             rectangle.fill();
                             rectangle.close();
 
                             PDPageContentStream contents = new PDPageContentStream(document, page, true, false, true);
-
-                            /*PDRectangle position = new PDRectangle();
-                            position.setLowerLeftX(pw - (textWidth + 12));
-                            position.setLowerLeftY(ph - 18);
-                            position.setUpperRightX(pw);
-                            position.setUpperRightY(ph);*/
-
                             contents.beginText();
                             contents.setFont(font, 12);
-                            contents.newLineAtOffset(pw - (textWidth + 3), ph - 12);
+                            if(page.getRotation() == 90) {
+                                contents.setTextMatrix(Matrix.getRotateInstance(1.5708, 14, ph - (textWidth + 3)));
+                            } else {
+                                contents.newLineAtOffset(pw - (textWidth + 3), ph - 12);
+                            }
                             contents.showText(header);
                             contents.endText();
                             contents.close();
 
                             /*
+                            PDRectangle position = new PDRectangle();
+                            position.setLowerLeftX(pw - (textWidth + 12));
+                            position.setLowerLeftY(ph - 18);
+                            position.setUpperRightX(pw);
+                            position.setUpperRightY(ph);
+
+                            PDPageContentStream pageNumber = new PDPageContentStream(document, page, true, false, true);
+                            pageNumber.beginText();
+                            pageNumber.setFont(font, 12);
+                            pageNumber.newLineAtOffset(pw - 22, 0);
+                            pageNumber.showText(header);
+                            pageNumber.endText();
+                            pageNumber.close();
+
                             PDAnnotationTextMarkup highlight = new PDAnnotationTextMarkup(PDAnnotationTextMarkup.SUB_TYPE_HIGHLIGHT);
 
                             highlight.setRectangle(position);
@@ -246,6 +343,7 @@ public class SubmittalProcessing {
                             highlight.setColor(yellow);
                             annotations.add(highlight);
                             */
+
                         } catch (Exception f) {}
                     }
                     sectionList.add(document);
@@ -316,8 +414,8 @@ public class SubmittalProcessing {
 
         try {
             PDFMergerUtility pdfMerger = new PDFMergerUtility();
-            pdfMerger.setDestinationFileName("CompleteSubmittal.pdf");
-            pdfMerger.addSource("temp\\coverPage.pdf");
+            pdfMerger.setDestinationFileName("temp\\mergedSubmittal.pdf");
+            pdfMerger.addSource("temp\\PictureDocument.pdf");
             pdfMerger.addSource("temp\\genInfo.pdf");
             pdfMerger.addSource("temp\\mainIndex.pdf");
 
@@ -405,10 +503,10 @@ public class SubmittalProcessing {
         }
 
         try {
-            completeDoc.save("CompleteSubmittal.pdf");
+            completeDoc.save("temp\\mergedSubmittal.pdf");
             completeDoc.close();
-        } catch (IOException whatever) {
-            System.err.println("broke IO");
+        } catch(IOException e) {
+            System.err.println("IO Error in bookmarking");
         }
 
     }
