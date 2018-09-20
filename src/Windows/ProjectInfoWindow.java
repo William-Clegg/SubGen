@@ -4,16 +4,20 @@ import com.company.SubGenApp;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
+import javafx.event.ActionEvent;
+import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.*;
 import javafx.scene.layout.GridPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.FontWeight;
 import javafx.scene.text.Text;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.FileChooser;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
 
 import java.io.*;
 import java.text.SimpleDateFormat;
@@ -33,6 +37,9 @@ public class ProjectInfoWindow {
     public static CheckBox dateCheck;
     public static CheckBox volumeCheck;
     public static CheckBox pageNumbersCheck;
+    public static int red;
+    public static int green;
+    public static int blue;
 
     public static GridPane createGrid() {
         GridPane grid = new GridPane();
@@ -273,6 +280,21 @@ public class ProjectInfoWindow {
                 }
             }
         });
+
+        Label colorLabel = new Label();
+        colorLabel.setText("Choose the highlighter color");
+        grid.add(colorLabel,5,5);
+
+        ColorPicker colorPicker = new ColorPicker(Color.YELLOW);
+        colorPicker.setOnAction(new EventHandler<ActionEvent>() {
+            @Override
+            public void handle(ActionEvent event) {
+                red = (int)(colorPicker.getValue().getRed()*255);
+                green = (int)(colorPicker.getValue().getGreen()*255);
+                blue = (int)(colorPicker.getValue().getBlue()*255);
+            }
+        });
+        grid.add(colorPicker, 6, 5);
 
         Label volumeLabel = new Label();
         volumeLabel.setText("Include a volume label");

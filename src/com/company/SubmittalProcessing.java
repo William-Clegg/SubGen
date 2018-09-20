@@ -168,7 +168,7 @@ public class SubmittalProcessing {
                     float ph = page.getMediaBox().getUpperRightY();
 
                     PDPageContentStream pageNumberBackground = new PDPageContentStream(completeDoc, page, true, false, true);
-                    pageNumberBackground.setNonStrokingColor(Color.YELLOW);
+                    pageNumberBackground.setNonStrokingColor(red,green,blue);
                     if(page.getRotation() == 90) {
                         pageNumberBackground.addRect(pw - 20, ph-25, 20, 30);
                     } else {
@@ -295,7 +295,7 @@ public class SubmittalProcessing {
                             float textWidth = font.getStringWidth(header) / 1000 * 12;
 
                             PDPageContentStream rectangle = new PDPageContentStream(document, page, true, false, true);
-                            rectangle.setNonStrokingColor(Color.YELLOW);
+                            rectangle.setNonStrokingColor(red, green, blue);
                             if(page.getRotation() == 90) {
                                 rectangle.addRect(0, ph - (textWidth + 7), 20, textWidth + 10);
                             } else {
@@ -391,11 +391,13 @@ public class SubmittalProcessing {
         document.write(out);
 
         document = new XWPFDocument(new ByteArrayInputStream(out.toByteArray()));
+        out.close();
         PdfOptions options = PdfOptions.create();
         PdfConverter converter = (PdfConverter) PdfConverter.getInstance();
         File outFile = new File("temp\\" + name + ".pdf");
         FileOutputStream fos = new FileOutputStream(outFile);
         converter.convert(document, fos, options);
+        fos.close();
 
         if(!name.equals("coverPage") && !name.equals("genInfo")) {
             PDDocument doc = PDDocument.load(outFile);
@@ -428,6 +430,7 @@ public class SubmittalProcessing {
                     submittalSectionList.get(i).get(j).save(fos);
                     submittalSectionList.get(i).get(j).close();
                     pdfMerger.addSource(file);
+                    fos.close();
                 }
             }
             pdfMerger.mergeDocuments(null);
