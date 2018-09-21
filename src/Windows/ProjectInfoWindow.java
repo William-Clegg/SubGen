@@ -31,15 +31,13 @@ import static com.company.SubGenApp.*;
 public class ProjectInfoWindow {
 
     public static String job, jobAdd1, jobAdd2, architectName, architectAdd1, architectAdd2, architectPhone,
-            genConName, genConAdd1, genConAdd2, genConPhone, imgPath, date, volume;
+            genConName, genConAdd1, genConAdd2, genConPhone, imgPath, date, volume, pageNumbersText, rgbText;
     public static boolean pageNumbers;
     public static TextField pnField, pAdd1, pAdd2, archNameField, aAdd1, aAdd2, archPhoneField, gcNameField, gAdd1, gAdd2, gcPhoneField;
     public static CheckBox dateCheck;
     public static CheckBox volumeCheck;
     public static CheckBox pageNumbersCheck;
-    public static int red;
-    public static int green;
-    public static int blue;
+    public static Integer red, green, blue;
 
     public static GridPane createGrid() {
         GridPane grid = new GridPane();
@@ -283,7 +281,7 @@ public class ProjectInfoWindow {
 
         Label colorLabel = new Label();
         colorLabel.setText("Choose the highlighter color");
-        grid.add(colorLabel,5,5);
+        grid.add(colorLabel,5,1);
 
         ColorPicker colorPicker = new ColorPicker(Color.YELLOW);
         colorPicker.setOnAction(new EventHandler<ActionEvent>() {
@@ -294,7 +292,7 @@ public class ProjectInfoWindow {
                 blue = (int)(colorPicker.getValue().getBlue()*255);
             }
         });
-        grid.add(colorPicker, 6, 5);
+        grid.add(colorPicker, 5, 2);
 
         Label volumeLabel = new Label();
         volumeLabel.setText("Include a volume label");
@@ -356,11 +354,11 @@ public class ProjectInfoWindow {
         HBox chooseImageBox = new HBox(10);
         chooseImageBox.setAlignment(Pos.BOTTOM_LEFT);
         chooseImageBox.getChildren().add(chooseImage);
-        grid.add(chooseImageBox, 5, 1);
+        grid.add(chooseImageBox, 6, 1);
 
         TextField imagePath = new TextField();
         imagePath.setText(loadDefaultimage());
-        grid.add(imagePath, 5, 2);
+        grid.add(imagePath, 6, 2, 2, 1);
 
         chooseImage.setOnAction(e -> {
 
@@ -398,7 +396,7 @@ public class ProjectInfoWindow {
             File file = directoryChooser.showDialog(window);
 
             if(file != null) {
-                String[] savedInfo = new String[14];
+                String[] savedInfo = new String[16];
                 try {
                     File infoSave = new File(file + "\\ProjectInfo.ser");
                     savedInfo = loadProjectInfo(infoSave);
@@ -434,6 +432,22 @@ public class ProjectInfoWindow {
                         volumeCheck.setSelected(true);
                         volumeText.setText(volume);
                     }
+                }
+                if(savedInfo[14] != null) {
+                    if(savedInfo[14].equals("true")) {
+                        pageNumbers = true;
+                        pageNumbersCheck.setSelected(true);
+                    } else {
+                        pageNumbers = false;
+                        pageNumbersCheck.setSelected(false);
+                    }
+                }
+                if(savedInfo[15] != null) {
+                    rgbText = savedInfo[15];
+                    red = Integer.parseInt(rgbText.substring(0,rgbText.indexOf(" ")));
+                    green = Integer.parseInt(rgbText.substring(rgbText.indexOf(" ")+1,rgbText.lastIndexOf(" ")));
+                    blue = Integer.parseInt(rgbText.substring(rgbText.lastIndexOf(" ")+1));
+                    colorPicker.setValue(Color.rgb(red, green, blue));
                 }
 
                 job = pnField.getText();
@@ -476,8 +490,10 @@ public class ProjectInfoWindow {
             imgPath = imagePath.getText();
             if(dateCheck.isSelected()){date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));} else {date = "";}
             if(volumeCheck.isSelected()){volume = volumeText.getText();} else {volume = "";}
+            if(pageNumbersCheck.isSelected()){pageNumbersText = "true";} else {pageNumbersText = "false";}
+            if(red != null) {rgbText = red + " " + green + " " + blue;}
 
-            String[] savedInfo = new String[14];
+            String[] savedInfo = new String[16];
             savedInfo[0] = pnField.getText();
             savedInfo[1] = pAdd1.getText();
             savedInfo[2] = pAdd2.getText();
@@ -492,6 +508,8 @@ public class ProjectInfoWindow {
             savedInfo[11] = imagePath.getText();
             savedInfo[12] = date;
             savedInfo[13] = volume;
+            savedInfo[14] = pageNumbersText;
+            savedInfo[15] = rgbText;
 
             saveProjectInfo(savedInfo);
 

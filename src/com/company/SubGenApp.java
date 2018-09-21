@@ -4,9 +4,10 @@ import Windows.ProjectInfoWindow;
 import javafx.application.Application;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
 import javafx.scene.Scene;
-import javafx.scene.control.TreeItem;
-import javafx.scene.control.TreeView;
+import javafx.scene.control.*;
 import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
@@ -21,7 +22,9 @@ public class SubGenApp extends Application {
 
     public static Stage window;
     public static Scene scene, scene1;
+    public TabPane tabPane;
     public final static ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
+    GridPane grid;
 
     public static ObservableList<String> subSheets = FXCollections.observableArrayList();
 
@@ -37,18 +40,27 @@ public class SubGenApp extends Application {
     public void start(Stage primaryStage) throws Exception {
 
         window = primaryStage;
-        FileInputStream iconStream = new FileInputStream("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\src\\SGblackLarge.png");
-        window.getIcons().add(new Image(iconStream));
-        window.setTitle("Submittal Generator");
-
-        GridPane grid = ProjectInfoWindow.createGrid();
+        tabPane = new TabPane();
+        Tab projectInfo = new Tab();
+        projectInfo.setText("Create a Submittal");
+        projectInfo.setContent(sizingSample());
 
         root = new TreeItem<>("Submittal");
         root.setExpanded(true);
         treeView = new TreeView<String>(root);
         treeView.setCellFactory(param -> new CustomTreeCell());
 
-        scene = new Scene(grid, 900, 700);
+        Tab generalInformation = new Tab();
+        generalInformation.setText("General Information");
+        generalInformation.setContent(alignmentSample());
+
+        tabPane.getTabs().addAll(projectInfo, generalInformation);
+
+        FileInputStream iconStream = new FileInputStream("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\src\\SGblackLarge.png");
+        window.getIcons().add(new Image(iconStream));
+        window.setTitle("Submittal Generator");
+
+        scene = new Scene(tabPane, 900, 700);
         primaryStage.setScene(scene);
 
         primaryStage.show();
@@ -60,9 +72,24 @@ public class SubGenApp extends Application {
         window.setScene(scene1);
     }
 
+    private Pane sizingSample() {
+
+        grid = ProjectInfoWindow.createGrid();
+
+        return grid;
+    }
+
+    private Pane alignmentSample() {
+
+        grid = SettingsWindow.createGrid();
+
+        return grid;
+    }
+
     public static void main(String[] args) {
         launch(args);
-    }}
+    }
+}
 
 
 

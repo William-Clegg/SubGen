@@ -21,14 +21,15 @@ public class AutoSave extends ProjectInfoWindow{
 
     public static String[] loadProjectInfo(File file) {
 
-        String[] savedInfo = new String[14];
+        String[] savedInfo = new String[16];
 
         try {
-            FileInputStream fis = new FileInputStream(file);
-            ObjectInputStream ois = new ObjectInputStream(fis);
-            savedInfo = (String[]) ois.readObject();
-            System.out.println(savedInfo.length);
-            ois.close();
+            if(file.exists()) {
+                FileInputStream fis = new FileInputStream(file);
+                ObjectInputStream ois = new ObjectInputStream(fis);
+                savedInfo = (String[]) ois.readObject();
+                ois.close();
+            }
 
         } catch (IOException savedInfoLoadE) {
             savedInfoLoadE.printStackTrace();
@@ -148,7 +149,7 @@ public class AutoSave extends ProjectInfoWindow{
                 fos = new FileOutputStream(saveInfo + "\\ProjectInfo.ser");
             } else {
                 File volSaveInfo = new File("Saves\\" + job + "\\" + volume);
-                volSaveInfo.getParentFile().mkdirs();
+                volSaveInfo.mkdirs();
                 fos = new FileOutputStream(volSaveInfo + "\\ProjectInfo.ser");
             }
             ObjectOutputStream oos = new ObjectOutputStream(fos);

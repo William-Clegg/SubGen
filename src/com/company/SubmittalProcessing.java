@@ -50,8 +50,9 @@ public class SubmittalProcessing {
 
     private static ArrayList<ArrayList<PDDocument>> submittalSections = new ArrayList<>();
 
+    private static PDFont font = PDType1Font.HELVETICA_BOLD;
     static int num = 0;
-    static int otherNum = 0;
+    static float pageLoc = 0;
     private static int mainIndexPages;
     private static ArrayList<Integer> subIndexPages = new ArrayList<>();
 
@@ -133,11 +134,11 @@ public class SubmittalProcessing {
 
         try {
             convertToPdf(mainIndexDoc, "mainIndex");
+            traverseOutline(root, 0, null, null);
         } catch(IOException mainIndexIO) {
             System.out.println("IO Exception for mainIndexDoc");
         }
 
-        traverseOutline(root, 0, null, null);
         mergePages(submittalSections);
 
         try {
@@ -168,7 +169,11 @@ public class SubmittalProcessing {
                     float ph = page.getMediaBox().getUpperRightY();
 
                     PDPageContentStream pageNumberBackground = new PDPageContentStream(completeDoc, page, true, false, true);
-                    pageNumberBackground.setNonStrokingColor(red,green,blue);
+                    if (red != null) {
+                        pageNumberBackground.setNonStrokingColor(red, green, blue);
+                    } else {
+                        pageNumberBackground.setNonStrokingColor(Color.YELLOW);
+                    }
                     if(page.getRotation() == 90) {
                         pageNumberBackground.addRect(pw - 20, ph-25, 20, 30);
                     } else {
@@ -177,7 +182,6 @@ public class SubmittalProcessing {
                     pageNumberBackground.fill();
                     pageNumberBackground.close();
 
-                    PDFont font = PDType1Font.HELVETICA_BOLD;
                     PDPageContentStream pageNum = new PDPageContentStream(completeDoc, page, true, false, true);
                     pageNum.beginText();
                     pageNum.setFont(font, 12);
@@ -231,33 +235,38 @@ public class SubmittalProcessing {
 
     }
 
-    private static void traverseOutline(TreeItem<String> node, int level, ArrayList<PDDocument> sectionList, XWPFDocument sectionIndex) {
+    private static void traverseOutline(TreeItem<String> node, int level, ArrayList<PDDocument> sectionList, PDDocument sectionContents) throws IOException {
 
         if(level == 1) {
             sectionList = new ArrayList<>();
 
-            sectionIndex = new XWPFDocument();
-            XWPFParagraph paragraph = sectionIndex.createParagraph();
-            paragraph.setAlignment(ParagraphAlignment.LEFT);
-            paragraph.setVerticalAlignment(TextAlignment.TOP);
-            paragraph.setIndentationLeft(540);
+            sectionContents = new PDDocument();
+            sectionContents.addPage(new PDPage());
+            PDPage page = sectionContents.getPage(0);
+            float pw = page.getMediaBox().getUpperRightX();
+            float ph = page.getMediaBox().getUpperRightY();
 
-            XWPFRun run = paragraph.createRun();
-            run.setFontSize(20);
-            run.setFontFamily("Calibri (Body)");
-
-            run.setBold(true);
-            run.setText((node.getParent().getChildren().indexOf(node)+1) + ") " + node.getValue());
+            PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
+            stream.beginText();
+            stream.setFont(font, 20);
+            stream.newLineAtOffset(pw/10, ph - 150);
+            pageLoc += 150;
+            stream.showText((node.getParent().getChildren().indexOf(node)+1) + ") " + node.getValue());
+            stream.endText();
 
         } else if(level == 2) {
 
-            XWPFParagraph paragraph = sectionIndex.createParagraph();
-            paragraph.setIndentationLeft(1080);
-            XWPFRun run = paragraph.createRun();
-            run.setFontSize(16);
-            run.setFontFamily("Calibri (Body)");
-            run.getCTR().insertNewBr(1);
-            run.setText(node.getValue());
+            PDPage page = sectionContents.getPage(0);
+            float pw = page.getMediaBox().getUpperRightX();
+            float ph = page.getMediaBox().getUpperRightY();
+            PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
+            stream.beginText();
+            stream.setFont(font, 16);
+            stream.newLineAtOffset(pw / 8, ph - (pageLoc+100));
+            pageLoc += 100;
+            stream.showText(node.getValue());
+            stream.endText();
+
         } else if(level == 3) {
 
             XWPFParagraph paragraph = sectionIndex.createParagraph();
@@ -287,15 +296,17 @@ public class SubmittalProcessing {
                         float ph = page.getMediaBox().getUpperRightY();
                         System.out.println(subFileName);
 
-                        PDFont font = PDType1Font.HELVETICA_BOLD;
-                        try
-                        {
+                        try {
 
                             String header = node.getParent().getParent().getValue() + "  /  " + node.getParent().getValue();
                             float textWidth = font.getStringWidth(header) / 1000 * 12;
 
                             PDPageContentStream rectangle = new PDPageContentStream(document, page, true, false, true);
-                            rectangle.setNonStrokingColor(red, green, blue);
+                            if (red != null) {
+                                rectangle.setNonStrokingColor(red, green, blue);
+                            } else {
+                                rectangle.setNonStrokingColor(Color.YELLOW);
+                            }
                             if(page.getRotation() == 90) {
                                 rectangle.addRect(0, ph - (textWidth + 7), 20, textWidth + 10);
                             } else {
@@ -316,33 +327,6 @@ public class SubmittalProcessing {
                             contents.endText();
                             contents.close();
 
-                            /*
-                            PDRectangle position = new PDRectangle();
-                            position.setLowerLeftX(pw - (textWidth + 12));
-                            position.setLowerLeftY(ph - 18);
-                            position.setUpperRightX(pw);
-                            position.setUpperRightY(ph);
-
-                            PDPageContentStream pageNumber = new PDPageContentStream(document, page, true, false, true);
-                            pageNumber.beginText();
-                            pageNumber.setFont(font, 12);
-                            pageNumber.newLineAtOffset(pw - 22, 0);
-                            pageNumber.showText(header);
-                            pageNumber.endText();
-                            pageNumber.close();
-
-                            PDAnnotationTextMarkup highlight = new PDAnnotationTextMarkup(PDAnnotationTextMarkup.SUB_TYPE_HIGHLIGHT);
-
-                            highlight.setRectangle(position);
-                            highlight.setConstantOpacity((float) 1.0);
-
-                            float[] quadPoints = new float[]{pw - (textWidth + 12), ph, pw, ph, pw - (textWidth + 12), ph - 18, pw, ph - 18};
-
-                            highlight.setQuadPoints(quadPoints);
-                            PDColor yellow = new PDColor(new float[]{1, 1, 60 / 255F}, PDDeviceRGB.INSTANCE);
-                            highlight.setColor(yellow);
-                            annotations.add(highlight);
-                            */
 
                         } catch (Exception f) {}
                     }
@@ -370,9 +354,9 @@ public class SubmittalProcessing {
                 if (level == 0) {
                     traverseOutline(it, level + 1, null, null);
                 } else if (level == 1) {
-                    traverseOutline(it, level + 1, sectionList, sectionIndex);
+                    traverseOutline(it, level + 1, sectionList, sectionContents);
                 } else if (level == 2) {
-                    traverseOutline(it, level + 1, sectionList, sectionIndex);
+                    traverseOutline(it, level + 1, sectionList, sectionContents);
                 }
             }
         }

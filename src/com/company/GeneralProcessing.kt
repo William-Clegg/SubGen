@@ -40,9 +40,9 @@ class GeneralProcessing {
         val bimg = ImageIO.read(File(imgPath))
         val height = bimg.height.toDouble()
         val width = bimg.width
-        val adjustment = 220 / height
+        val adjustment = 210 / height
         println("height " + height + " width " + width + "  " + imgPath)
-        contentStream.drawImage(pdImage, pw/11, (ph/1.5).toFloat(), (width*adjustment).toFloat(),220.toFloat())
+        contentStream.drawImage(pdImage, pw/11, (ph/1.5).toFloat(), (width*adjustment).toFloat(),210.toFloat())
 
         var textLength = font.getStringWidth("Plumbing Submittal") / 1000 * 32
         contentStream.beginText()
@@ -51,25 +51,65 @@ class GeneralProcessing {
         contentStream.showText("Plumbing Submittal")
         contentStream.endText()
 
-        textLength = font.getStringWidth("For") / 1000 * 24
+        textLength = font.getStringWidth("For") / 1000 * 26
         contentStream.beginText()
-        contentStream.setFont(font, 24.toFloat())
-        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/2.2).toFloat())
+        contentStream.setFont(font, 26.toFloat())
+        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/2.1).toFloat())
         contentStream.showText("For")
         contentStream.endText()
 
         textLength = font.getStringWidth(job) / 1000 * 48
-        contentStream.beginText()
-        contentStream.setFont(font, 48.toFloat())
-        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/2.8).toFloat())
-        contentStream.showText(job)
-        contentStream.endText()
+        val longText = textLength > (pw - 150)
+        if(longText) {
+            val jobChars = job.toCharArray()
+            val spaceIndicies = ArrayList<Int>()
+            for(i in 0..jobChars.size - 1) {
+                if(jobChars[i].equals(' ')) {
+                    spaceIndicies.add(i)
+                }
+            }
+
+            var middleSpace = 0
+            var difference = 255
+            val halfStringLength = job.length/2
+            for(item : Int in spaceIndicies) {
+                if(Math.abs(halfStringLength - item) < difference) {
+                    difference = (Math.abs(halfStringLength - item))
+                    middleSpace = item
+                }
+            }
+            val job1 = job.substring(0, middleSpace)
+            val job2 = job.substring(middleSpace+1)
+            val length1 = font.getStringWidth(job1) / 1000 * 48
+            val length2 = font.getStringWidth(job2) / 1000 * 48
+            contentStream.beginText()
+            contentStream.setFont(font, 48.toFloat())
+            contentStream.newLineAtOffset((pw / 2) - (length1/2), (ph / 2.6).toFloat())
+            contentStream.showText(job1)
+            contentStream.endText()
+
+            contentStream.beginText()
+            contentStream.setFont(font, 48.toFloat())
+            contentStream.newLineAtOffset((pw / 2) - (length2/2), (ph / 3.2).toFloat())
+            contentStream.showText(job2)
+            contentStream.endText()
+        } else {
+            contentStream.beginText()
+            contentStream.setFont(font, 48.toFloat())
+            contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 2.6).toFloat())
+            contentStream.showText(job)
+            contentStream.endText()
+        }
 
         if(!volume.equals("")) {
             textLength = font.getStringWidth(volume) / 1000 * 28
             contentStream.beginText()
             contentStream.setFont(font, 28.toFloat())
-            contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/3.2).toFloat())
+            if(!longText) {
+                contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 3.2).toFloat())
+            } else {
+                contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 4).toFloat())
+            }
             contentStream.showText(volume)
             contentStream.endText()
         }
@@ -78,7 +118,11 @@ class GeneralProcessing {
             textLength = font.getStringWidth(date) / 1000 * 22
             contentStream.beginText()
             contentStream.setFont(font, 22.toFloat())
-            contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/3.4).toFloat())
+            if(!longText) {
+                contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 3.8).toFloat())
+            } else {
+                contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 4.7).toFloat())
+            }
             contentStream.showText(date)
             contentStream.endText()
         }
@@ -86,97 +130,13 @@ class GeneralProcessing {
         textLength = font.getStringWidth("Prepared By Stasco Mechanical") / 1000 * 24
         contentStream.beginText()
         contentStream.setFont(font, 24.toFloat())
-        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/11))
+        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/13))
         contentStream.showText("Prepared By Stasco Mechanical")
         contentStream.endText()
         contentStream.close()
 
-
         coverPageDoc.save("temp\\PictureDocument.pdf")
         coverPageDoc.close()
-
-        /*
-        val p = coverPageDoc.paragraphs[0]
-        p.alignment = ParagraphAlignment.LEFT
-        val r = p.runs.get(0)
-        try {
-            val bimg = ImageIO.read(File(imgPath))
-            val width = bimg.width
-            val height = bimg.height.toDouble()
-            val adjustment = 220 / height
-            val format = XWPFDocument.PICTURE_TYPE_JPEG
-            r.addBreak()
-            r.addPicture(FileInputStream(imgPath), format, imgPath, Units.toEMU(Math.round(width * adjustment).toDouble()), Units.toEMU(220.0))
-
-            p.alignment = ParagraphAlignment.CENTER
-
-        } catch (e: Exception) {
-            System.err.println(e.toString() + "Image file not found")
-        }
-
-        val titleString = "1"
-        val projectString = "2"
-        val authorString = "3"
-        val volumeString = "4"
-        val dateString = "5"
-
-        for (thisParagraph:XWPFParagraph in coverPageDoc.getParagraphs()) {
-            val runs = thisParagraph.getRuns()
-            if (runs != null) {
-                for (run:XWPFRun in runs) {
-                    var text = run.getText(0)
-                    if (text != null) {
-                        if(text.contains(titleString)) {
-                            text = text.replace(titleString, "Submittal Thing")
-                            run.setText(text, 0)
-                        } else if(text.contains(projectString)) {
-                            text = text.replace(projectString, "Coca-Cola Warehouse")
-                            run.setText(text, 0)
-                            run.isBold = true
-
-                        } else if(text.contains(volumeString)) {
-
-                            if (volumeCheck.isSelected) {
-                                text = text.replace(volumeString, volume)
-                                run.setText(text, 0)
-                                run.isBold = true
-
-                                run.fontSize = 28
-                                run.fontFamily = "Calibri (Body)"
-                                run.underline = UnderlinePatterns.SINGLE
-                            } else {
-                                text = text.replace(volumeString, "")
-                                run.setText(text, 0)
-                            }
-                        } else if(text.contains(dateString)) {
-
-                            if (dateCheck.isSelected) {
-                                text = text.replace(dateString, date)
-                                run.setText(text, 0)
-                                run.isBold = true
-
-                                run.fontSize = 18
-                                run.fontFamily = "Calibri (Body)"
-
-                            } else {
-
-                                text = text.replace(dateString, "")
-                                run.setText(text, 0)
-                            }
-                        } else if(text.contains(authorString)) {
-                            text = text.replace(authorString, "Prepared by Stasco Mechanical Contractors")
-                            run.setText(text, 0)
-                        }
-                    }
-                }
-            }
-        }
-
-
-        val sp = SubmittalProcessing()
-        sp.convertToPdf(coverPageDoc, "coverPage")
-
-       */
 
         val p3 = generalInfoDoc.createParagraph()
         p3.alignment = ParagraphAlignment.CENTER
