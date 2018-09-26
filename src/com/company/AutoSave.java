@@ -21,7 +21,7 @@ public class AutoSave extends ProjectInfoWindow{
 
     public static String[] loadProjectInfo(File file) {
 
-        String[] savedInfo = new String[16];
+        String[] savedInfo = new String[18];
 
         try {
             if(file.exists()) {

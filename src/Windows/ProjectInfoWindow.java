@@ -31,12 +31,10 @@ import static com.company.SubGenApp.*;
 public class ProjectInfoWindow {
 
     public static String job, jobAdd1, jobAdd2, architectName, architectAdd1, architectAdd2, architectPhone,
-            genConName, genConAdd1, genConAdd2, genConPhone, imgPath, date, volume, pageNumbersText, rgbText;
-    public static boolean pageNumbers;
+            genConName, genConAdd1, genConAdd2, genConPhone, imgPath, date, volume, pageNumbersText, rgbText, removeMembersText, removeMainContentsText;
+    public static boolean pageNumbers, removeMembers, removeMainContents;
     public static TextField pnField, pAdd1, pAdd2, archNameField, aAdd1, aAdd2, archPhoneField, gcNameField, gAdd1, gAdd2, gcPhoneField;
-    public static CheckBox dateCheck;
-    public static CheckBox volumeCheck;
-    public static CheckBox pageNumbersCheck;
+    private static CheckBox dateCheck, volumeCheck, pageNumbersCheck, memberCheck, mainContentsCheck;
     public static Integer red, green, blue;
 
     public static GridPane createGrid() {
@@ -344,6 +342,17 @@ public class ProjectInfoWindow {
                 datePick.setVisible(newValue);
             }
         });
+
+        Label includeMembers = new Label("Do not include members page");
+        grid.add(includeMembers, 7, 8);
+        memberCheck = new CheckBox();
+        grid.add(memberCheck, 8, 8);
+
+        Label includeMainContents = new Label("Do not include main contents");
+        grid.add(includeMainContents, 7, 9);
+        mainContentsCheck = new CheckBox();
+        grid.add(mainContentsCheck, 8, 9);
+
         Button nextButton = new Button("Next");
         HBox hbBtn = new HBox(10);
         hbBtn.setAlignment(Pos.BOTTOM_RIGHT);
@@ -354,11 +363,11 @@ public class ProjectInfoWindow {
         HBox chooseImageBox = new HBox(10);
         chooseImageBox.setAlignment(Pos.BOTTOM_LEFT);
         chooseImageBox.getChildren().add(chooseImage);
-        grid.add(chooseImageBox, 6, 1);
+        grid.add(chooseImageBox, 7, 1);
 
         TextField imagePath = new TextField();
         imagePath.setText(loadDefaultimage());
-        grid.add(imagePath, 6, 2, 2, 1);
+        grid.add(imagePath, 7, 2, 2, 1);
 
         chooseImage.setOnAction(e -> {
 
@@ -368,7 +377,7 @@ public class ProjectInfoWindow {
 
             if(file != null) {
                 imagePath.setText(file.getAbsolutePath());
-                saveDefaultimage(file.getPath());
+                saveDefaultimage(file.getAbsolutePath());
             }
 
         });
@@ -396,7 +405,7 @@ public class ProjectInfoWindow {
             File file = directoryChooser.showDialog(window);
 
             if(file != null) {
-                String[] savedInfo = new String[16];
+                String[] savedInfo = new String[18];
                 try {
                     File infoSave = new File(file + "\\ProjectInfo.ser");
                     savedInfo = loadProjectInfo(infoSave);
@@ -449,6 +458,26 @@ public class ProjectInfoWindow {
                     blue = Integer.parseInt(rgbText.substring(rgbText.lastIndexOf(" ")+1));
                     colorPicker.setValue(Color.rgb(red, green, blue));
                 }
+                if(savedInfo[16] != null) {
+                    removeMembersText = savedInfo[16];
+                    if(removeMembersText.equals("true")) {
+                        removeMembers = true;
+                        memberCheck.setSelected(true);
+                    } else {
+                        removeMembers = false;
+                        memberCheck.setSelected(false);
+                    }
+                }
+                if(savedInfo[17] != null) {
+                    removeMainContentsText = savedInfo[17];
+                    if(removeMainContentsText.equals("true")) {
+                        removeMainContents = true;
+                        mainContentsCheck.setSelected(true);
+                    } else {
+                        removeMainContents = false;
+                        mainContentsCheck.setSelected(false);
+                    }
+                }
 
                 job = pnField.getText();
                 jobAdd1 = pAdd1.getText();
@@ -464,7 +493,6 @@ public class ProjectInfoWindow {
                 imgPath = imagePath.getText();
                 date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));
                 if(volumeCheck.isSelected()){volume = volumeText.getText();}
-
 
                 File listSave = new File(file + "\\ProjectOutline.ser");
                 if(listSave.exists()) {
@@ -492,8 +520,10 @@ public class ProjectInfoWindow {
             if(volumeCheck.isSelected()){volume = volumeText.getText();} else {volume = "";}
             if(pageNumbersCheck.isSelected()){pageNumbersText = "true";} else {pageNumbersText = "false";}
             if(red != null) {rgbText = red + " " + green + " " + blue;}
+            if(memberCheck.isSelected()){removeMembersText = "true";} else {removeMembersText = "false";}
+            if(mainContentsCheck.isSelected()){removeMainContentsText = "true";} else {removeMainContentsText = "false";}
 
-            String[] savedInfo = new String[16];
+            String[] savedInfo = new String[18];
             savedInfo[0] = pnField.getText();
             savedInfo[1] = pAdd1.getText();
             savedInfo[2] = pAdd2.getText();
@@ -510,6 +540,8 @@ public class ProjectInfoWindow {
             savedInfo[13] = volume;
             savedInfo[14] = pageNumbersText;
             savedInfo[15] = rgbText;
+            savedInfo[16] = removeMembersText;
+            savedInfo[17] = removeMainContentsText;
 
             saveProjectInfo(savedInfo);
 
