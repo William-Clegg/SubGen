@@ -162,7 +162,7 @@ class CustomTreeCell : TreeCell<String>() {
             if(getItem() == null) {
                 text = ""
             } else if(item?.contains("\\") ?: false) {
-                text = item?.substring(item.lastIndexOf('\\')+1, item.lastIndexOf('.'))
+                text = item?.substring(item.lastIndexOf('\\')+1/*, item.lastIndexOf('.')*/)
             } else {
                 text = item?.trim()
             }

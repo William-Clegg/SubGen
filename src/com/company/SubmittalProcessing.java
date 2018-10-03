@@ -47,6 +47,7 @@ import static com.company.SubGenApp.subSheets;
 public class SubmittalProcessing {
 
     private static ArrayList<ArrayList<PDDocument>> submittalSections = new ArrayList<>();
+    private static ArrayList<ArrayList<String>> submittalSectionsFile = new ArrayList<>();
 
     private static PDFont boldFont = PDType1Font.HELVETICA_BOLD;
     private static PDFont font = PDType1Font.HELVETICA;
@@ -146,25 +147,34 @@ public class SubmittalProcessing {
             float ph = page.getCropBox().getUpperRightY();
             subIndexPagesForecast.add(pageNumberForecast(root.getChildren().get(i), pw, ph));
             ArrayList<PDDocument> sectionList = new ArrayList<>();
+            ArrayList<String> sectionListFile = new ArrayList<>();
             for(int j = 0; j < root.getChildren().get(i).getChildren().size(); j++) {
                 for(int k = 0; k < root.getChildren().get(i).getChildren().get(j).getChildren().size(); k++) {
-
                     File file = new File(root.getChildren().get(i).getChildren().get(j).getChildren().get(k).getValue());
                     try {
                         PDDocument doc = PDDocument.load(file);
                         sectionList.add(doc);
-                    } catch (Exception e) {
-                        System.err.println("Exception in submittalsectioncontent creation");
+                        sectionListFile.add(file.toString());
+                        doc.close();
+                    } catch (IOException e) {
+                        System.err.println(e.getMessage());
                     }
                 }
-                submittalSections.add(sectionList);
             }
+            submittalSections.add(sectionList);
+            submittalSectionsFile.add(sectionListFile);
         }
 
         try {
+            if(!removeMainContents) {
+                currentDocPage += mainIndexPages;
+            }
+            if(!removeMembers) {
+                currentDocPage++;
+            }
             traverseOutline(root, 0, null);
         } catch(IOException mainIndexIO) {
-            System.out.println("IO Exception for mainIndexDoc");
+            System.err.println("IO Exception for mainIndexDoc");
         }
 
         mergePages(submittalSections);
@@ -172,6 +182,7 @@ public class SubmittalProcessing {
         try {
             PDDocument completeDoc = PDDocument.load(new File("temp\\mergedSubmittal.pdf"));
             setBoookmarks(completeDoc);
+            completeDoc.close();
         }catch(IOException e) {
             System.err.println("IO Error in bookmarking");
         }
@@ -257,10 +268,9 @@ public class SubmittalProcessing {
 
         File tempFolder = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\temp");
 
-
-        for(File file: tempFolder.listFiles()) {
+        /*for(File file: tempFolder.listFiles()) {
             file.delete();
-        }
+        }*/
 
     }
 
@@ -411,6 +421,18 @@ public class SubmittalProcessing {
                         } catch (Exception f) {}
                     }
 
+                    int num = 0;
+                    for(int i = 0; i < node.getParent().getParent().getChildren().indexOf(node.getParent()); i++) {
+                        num += node.getParent().getParent().getChildren().get(i).getChildren().size();
+                    }
+                    num += node.getParent().getChildren().indexOf(node);
+                    File file = new File("temp\\" + node.getParent().getParent().getParent().getChildren().indexOf(node.getParent().getParent()) +
+                                            num + ".pdf");
+                    System.out.println("creating " + node.getParent().getParent().getParent().getChildren().indexOf(node.getParent().getParent()) + " and " +
+                            num);
+                    document.save(file);
+                    document.close();
+
                 } catch(Exception docException) {}
             }
 
@@ -495,22 +517,18 @@ public class SubmittalProcessing {
                 pdfMerger.addSource("temp\\mainIndex.pdf");
             }
 
+
             for (int i = 0; i < root.getChildren().size(); i++) {
-                System.out.println("i = " + i);
                 pdfMerger.addSource("temp\\" + i + ".pdf");
 
                 for (int j = 0; j < submittalSectionList.get(i).size(); j++) {
                     File file = new File("temp\\" + i + j + ".pdf");
-                    FileOutputStream fos = new FileOutputStream(file);
-                    submittalSectionList.get(i).get(j).save(fos);
-                    submittalSectionList.get(i).get(j).close();
                     pdfMerger.addSource(file);
-                    fos.close();
                 }
             }
             pdfMerger.mergeDocuments(null);
         } catch (IOException e) {
-            System.out.println(e.getMessage());
+            System.err.println(e.getMessage());
         }
     }
 
@@ -589,11 +607,13 @@ public class SubmittalProcessing {
         outline.openNode();
         PDroot.openNode();
 
+        System.out.println(currentPage);
+
         try {
             completeDoc.save("temp\\mergedSubmittal.pdf");
             completeDoc.close();
         } catch(IOException e) {
-            System.err.println("IO Error in bookmarking");
+            System.err.println(e.getMessage());
         }
 
     }
