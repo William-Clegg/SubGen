@@ -42,12 +42,19 @@ class GeneralProcessing {
         val adjustment = 210 / height
         println("height " + height + " width " + width + "  " + imgPath)
         contentStream.drawImage(pdImage, pw/11, (ph/1.5).toFloat(), (width*adjustment).toFloat(),210.toFloat())
+        var docType : String = ""
 
-        var textLength = font.getStringWidth("Plumbing Submittal") / 1000 * 32
+        if(operationAndMain) {
+            docType = "Operation and Maintenance Manual"
+        } else {
+            docType ="Plumbing Submittal"
+        }
+
+        var textLength = font.getStringWidth(docType) / 1000 * 32
         contentStream.beginText()
         contentStream.setFont(font, 32.toFloat())
         contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/1.8).toFloat())
-        contentStream.showText("Plumbing Submittal")
+        contentStream.showText(docType)
         contentStream.endText()
 
         textLength = font.getStringWidth("For") / 1000 * 26
@@ -222,6 +229,44 @@ class GeneralProcessing {
             archPhoneNum.ctr.insertNewBr(1)
             archPhoneNum.setText(architectPhone)
             p5.spacingAfter = 1
+
+            val pEng = generalInfoDoc.createParagraph()
+            pEng.alignment = ParagraphAlignment.LEFT
+            pEng.indentationLeft = 4000
+            pEng.verticalAlignment = TextAlignment.TOP
+
+            val r7 = pEng.createRun()
+            r7.ctr.insertNewBr(1)
+            r7.ctr.insertNewBr(1)
+            r7.fontSize = 16
+            r7.fontFamily = "Calibri (Body)"
+            r7.isBold = true
+            r7.setText("Engineer")
+
+            val engTitle = pEng.createRun()
+            engTitle.ctr.insertNewBr(1)
+            engTitle.fontSize = 14
+            engTitle.fontFamily = "Calibri (Body)"
+            engTitle.setText(engineerName)
+
+            val engAddress1 = pEng.createRun()
+            engAddress1.fontSize = 12
+            engAddress1.fontFamily = "Calibri (Body)"
+            engAddress1.ctr.insertNewBr(1)
+            engAddress1.setText(engineerAdd1)
+
+            val engAddress2 = pEng.createRun()
+            engAddress2.fontSize = 12
+            engAddress2.fontFamily = "Calibri (Body)"
+            engAddress2.ctr.insertNewBr(1)
+            engAddress2.setText(engineerAdd2)
+
+            val engPhoneNumber = pEng.createRun()
+            engPhoneNumber.fontSize = 12
+            engPhoneNumber.fontFamily = "Calibri (Body)"
+            engPhoneNumber.ctr.insertNewBr(1)
+            engPhoneNumber.setText(engineerPhone)
+            pEng.spacingAfter = 1
 
             val p6 = generalInfoDoc.createParagraph()
             p6.alignment = ParagraphAlignment.LEFT

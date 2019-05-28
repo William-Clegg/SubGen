@@ -2,14 +2,25 @@ package com.company
 
 import com.company.AutoSave.bottomDragSave
 import com.company.AutoSave.listSwapSave
+import javafx.event.EventHandler
+import javafx.scene.control.Button
+import javafx.scene.control.TextField
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
+import javafx.scene.image.Image
+import javafx.scene.image.ImageView
 import javafx.scene.input.ClipboardContent
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyEvent
 import javafx.scene.input.TransferMode
+import javafx.scene.layout.HBox
+import java.io.FileInputStream
+
 
 class CustomTreeCell : TreeCell<String>() {
 
     var thisCell = this
+    private var textField : TextField? = null
 
     init {
 
@@ -47,6 +58,8 @@ class CustomTreeCell : TreeCell<String>() {
                 opacity = 1.0
             }
         }
+
+
 
         setOnDragDropped { event ->
 
@@ -153,20 +166,83 @@ class CustomTreeCell : TreeCell<String>() {
         }
     }
 
+    override fun startEdit() {
+        super.startEdit()
+
+        if(textField == null) {
+            createTextField()
+        }
+        text = null
+        graphic = textField
+        textField?.selectAll()
+    }
+
+    private fun createTextField() {
+        textField = TextField(getString())
+        textField?.setOnKeyPressed { event: KeyEvent? ->
+
+            if(event?.code == KeyCode.ENTER) {
+                commitEdit(textField?.text)
+            } else if (event?.code == KeyCode.ESCAPE){
+                cancelEdit()
+            }
+
+        }
+    }
+
+    override fun cancelEdit() {
+        super.cancelEdit()
+        text = item as String
+        graphic = treeItem.graphic
+    }
+
+    private fun getString() : String {
+        if(item == null) {
+            return ""
+        } else {
+            return item.toString()
+        }
+    }
+
     override fun updateItem(item: String?, empty: Boolean) {
         super.updateItem(item, empty)
 
+        //graphic credit
+        /*<div>Icons made by <a href="http://www.freepik.com" title="Freepik">Freepik</a> from <a href="https://www.flaticon.com/" title="Flaticon">www.flaticon.com</a> is licensed by <a href="http://creativecommons.org/licenses/by/3.0/" title="Creative Commons BY 3.0" target="_blank">CC 3.0 BY</a></div>*/
+
         if (empty) {
             text = null
+            graphic = null
         } else {
-            if(getItem() == null) {
-                text = ""
-            } else if(item?.contains("\\") ?: false) {
-                text = item?.substring(item.lastIndexOf('\\')+1/*, item.lastIndexOf('.')*/)
+
+            val image = ImageView(Image(FileInputStream("pencil-edit-button-light.png")))
+            image.fitHeight = 12.0
+            image.fitWidth = 12.0
+            val cellBox = HBox(10.0)
+            cellBox.children.add(image)
+            image.isPickOnBounds = true
+
+            if(isEditing) {
+                if(textField != null) {
+                    textField?.text = getString()
+                }
+                text = null
+                graphic = textField
             } else {
-                text = item?.trim()
+
+                graphic = cellBox
+                if (getItem() == null) {
+                    text = ""
+                } else if (item?.contains("\\") ?: false) {
+                    text = item?.substring(item.lastIndexOf('\\') + 1/*, item.lastIndexOf('.')*/)
+                } else {
+                    text = item?.trim()
+                }
+            }
+
+            image.setOnMouseClicked { event ->
+                val field = TextField()
             }
         }
-        graphic = null
     }
 }

@@ -3,10 +3,20 @@ package com.company;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 import javafx.scene.control.TreeItem;
+import javafx.scene.text.Text;
+import org.apache.pdfbox.contentstream.operator.Operator;
+import org.apache.pdfbox.cos.COSArray;
+import org.apache.pdfbox.cos.COSStream;
+import org.apache.pdfbox.cos.COSString;
 import org.apache.pdfbox.io.MemoryUsageSetting;
+import org.apache.pdfbox.io.ScratchFile;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
+import org.apache.pdfbox.pdfparser.PDFStreamParser;
+import org.apache.pdfbox.pdfwriter.ContentStreamWriter;
 import org.apache.pdfbox.pdmodel.*;
+import org.apache.pdfbox.pdmodel.common.PDMetadata;
 import org.apache.pdfbox.pdmodel.common.PDRectangle;
+import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
@@ -18,6 +28,10 @@ import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPa
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
+import org.apache.pdfbox.rendering.PDFRenderer;
+import org.apache.pdfbox.text.PDFTextStripper;
+import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
@@ -25,6 +39,7 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 
 import javax.imageio.spi.IIORegistry;
 import java.awt.*;
+import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigInteger;
 import java.nio.CharBuffer;
@@ -129,8 +144,20 @@ public class SubmittalProcessing {
                         }
                         r12.getCTR().insertNewBr(1);
 
-                        r12.setText("    " + subSheets.get(i));
-                        curSubNum += 1;
+                        int dashSpaceInd = -1;
+
+                        if(subSheets.get(i).contains("- ")) {
+                            dashSpaceInd = subSheets.get(i).indexOf("- ");
+                        }
+
+                        if(dashSpaceInd != -1) {
+                            r12.setText("    " + subSheets.get(i).substring(0, dashSpaceInd+1) + subSheets.get(i).substring(dashSpaceInd + 1));
+                            curSubNum += 1;
+
+                        } else {
+                            r12.setText("    " + subSheets.get(i));
+                            curSubNum += 1;
+                        }
                     }
                 }
             }
@@ -191,20 +218,27 @@ public class SubmittalProcessing {
             PDDocument completeDoc = PDDocument.load(new File("temp\\mergedSubmittal.pdf"));
             completeDoc.getDocumentCatalog().setPageMode(PageMode.USE_OUTLINES);
 
-            if(volume.equals("")) {
-                File path = new File("Saves\\" + job);
+            if(operationAndMain) {
+                File path = new File("Saves\\" + job + "\\Operation & Maintenance");
                 path.mkdirs();
                 completeDoc.save(path + "\\" + job + " Plubming Submittal Stasco.pdf");
             } else {
-                File path = new File("Saves\\" + job + "\\" + volume);
-                path.mkdirs();
-                completeDoc.save(path + "\\" + job + " " + volume + " Plubming Submittal Stasco.pdf");
+                if (volume.equals("")) {
+                    File path = new File("Saves\\" + job);
+                    path.mkdirs();
+                    completeDoc.save(path + "\\" + job + " Plubming Submittal Stasco.pdf");
+                } else {
+                    File path = new File("Saves\\" + job + "\\" + volume);
+                    path.mkdirs();
+                    completeDoc.save(path + "\\" + job + " " + volume + " Plubming Submittal Stasco.pdf");
+                }
             }
 
             if(pageNumbers) {
                 for (int i = 0; i < completeDoc.getPages().getCount(); i++) {
 
                     PDPage page = completeDoc.getPages().get(i);
+
                     float pw = page.getCropBox().getUpperRightX();
                     float ph = page.getCropBox().getUpperRightY();
 
@@ -214,13 +248,14 @@ public class SubmittalProcessing {
                     } else {
                         pageNumberBackground.setNonStrokingColor(Color.YELLOW);
                     }
-                    if(page.getRotation() == 90) {
-                        pageNumberBackground.addRect(pw - 20, ph-25, 20, 30);
+                    if (page.getRotation() == 90) {
+                        pageNumberBackground.addRect(pw - 20, ph - 25, 20, 30);
                     } else {
                         pageNumberBackground.addRect(pw - 25, 0, 50, 20);
                     }
                     pageNumberBackground.fill();
                     pageNumberBackground.close();
+
 
                     PDPageContentStream pageNum = new PDPageContentStream(completeDoc, page, true, false, true);
                     pageNum.beginText();
@@ -245,23 +280,53 @@ public class SubmittalProcessing {
                     pageNum.showText("" + (i + 1));
                     pageNum.endText();
                     pageNum.close();
+
+
                 }
-                if(volume.equals("")) {
-                    File path = new File("Saves\\" + job);
-                    path.mkdirs();
-                    completeDoc.save(path + "\\" + job + " FOR PRINTING Plubming Submittal Stasco.pdf");
+
+                ArrayList<String> pageNumList = new ArrayList<String>();
+
+                PDOutlineItem node = completeDoc.getDocumentCatalog().getDocumentOutline().getFirstChild();
+
+                for(PDOutlineItem mainChild : node.children()) {
+
+                    for(PDOutlineItem subChild : mainChild.children()) {
+
+                        for(PDOutlineItem itemChild : subChild.children()) {
+
+                            PDPageDestination pd = (PDPageDestination) itemChild.getDestination();
+                            pageNumList.add("" + (pd.retrievePageNumber() + 1));
+                        }
+                    }
+                }
+
+                for (String num : pageNumList) {
+                    searchReplace("```", num, false, completeDoc);
+                }
+
+
+
+                if(operationAndMain) {
+                        File path = new File("Saves\\" + job + "\\Operation & Maintenance");
+                        path.mkdirs();
+                        completeDoc.save(path + "\\" + job + " FOR PRINTING Plubming Submittal Stasco.pdf");
                 } else {
-                    File path = new File("Saves\\" + job + "\\" + volume);
-                    path.mkdirs();
-                    completeDoc.save(path + "\\" + job + " " + volume + " FOR PRINTING Plubming Submittal Stasco.pdf");
+                    if (volume.equals("")) {
+                        File path = new File("Saves\\" + job);
+                        path.mkdirs();
+                        completeDoc.save(path + "\\" + job + " FOR PRINTING Plubming Submittal Stasco.pdf");
+                    } else {
+                        File path = new File("Saves\\" + job + "\\" + volume);
+                        path.mkdirs();
+                        completeDoc.save(path + "\\" + job + " " + volume + " FOR PRINTING Plubming Submittal Stasco.pdf");
+                    }
                 }
             }
+
             completeDoc.close();
 
         } catch(IOException exc) {
-            for(int i = 0; i < exc.getStackTrace().length; i++) {
-                System.err.println(exc.getStackTrace()[i]);
-            }
+            System.err.println(exc.getMessage());
         }
 
         SubGenApp.window.close();
@@ -308,7 +373,7 @@ public class SubmittalProcessing {
                 stream.setFont(boldFont, 16);
                 stream.newLineAtOffset(pw / 8, ph - pageLoc);
                 if((pageLoc+40) + ((node.getChildren().size()-1)*20) > ph-40) {
-                    stream.showText(node.getValue() + " (cont. next page…)");
+                    stream.showText(node.getValue()/* + " (cont…)"*/);
                 } else {
                     stream.showText(node.getValue());
                 }
@@ -359,7 +424,7 @@ public class SubmittalProcessing {
                 stream.beginText();
                 stream.setFont(boldFont, 16);
                 stream.newLineAtOffset((float)(pw / 8), ph - pageLoc);
-                stream.showText(node.getParent().getValue() + " (cont.)");
+                stream.showText(node.getParent().getValue() + " (cont…)");
                 stream.endText();
 
                 pageLoc += 40;
@@ -371,6 +436,14 @@ public class SubmittalProcessing {
                 stream.endText();
                 stream.close();
             }
+
+            PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
+            stream.beginText();
+            stream.setFont(font, 12);
+            stream.newLineAtOffset((float)(pw - 50), ph - pageLoc);
+            stream.showText("Pg ```");
+            stream.endText();
+            stream.close();
 
             File sourceFile = new File(node.getValue());
             if(sourceFile.exists()) {
@@ -388,7 +461,18 @@ public class SubmittalProcessing {
 
                         try {
 
-                            String header = node.getParent().getParent().getValue() + "  /  " + node.getParent().getValue();
+                            String header;
+                            if(operationAndMain) {
+                                header = node.getParent().getParent().getValue() + " / " + node.getParent().getValue() + " / " +
+                                        node.getValue().substring(node.getValue().lastIndexOf("\\") + 1, node.getValue().lastIndexOf("."));
+
+                            } else {
+                                if (node.getParent().getParent().getValue().contains("Fixtures")) {
+                                    header = node.getParent().getParent().getValue() + "  /  " + subFileName;
+                                } else {
+                                    header = node.getParent().getParent().getValue() + "  /  " + node.getParent().getValue();
+                                }
+                            }
                             float textWidth = boldFont.getStringWidth(header) / 1000 * 12;
 
                             PDPageContentStream rectangle = new PDPageContentStream(document, specPage, true, false, true);
@@ -426,7 +510,7 @@ public class SubmittalProcessing {
                         num += node.getParent().getParent().getChildren().get(i).getChildren().size();
                     }
                     num += node.getParent().getChildren().indexOf(node);
-                    File file = new File("temp\\" + node.getParent().getParent().getParent().getChildren().indexOf(node.getParent().getParent()) +
+                    File file = new File("temp\\" + node.getParent().getParent().getParent().getChildren().indexOf(node.getParent().getParent()) + "." +
                                             num + ".pdf");
                     System.out.println("creating " + node.getParent().getParent().getParent().getChildren().indexOf(node.getParent().getParent()) + " and " +
                             num);
@@ -504,7 +588,7 @@ public class SubmittalProcessing {
 
     private static void mergePages(ArrayList<ArrayList<PDDocument>> submittalSectionList) {
 
-        System.out.println(submittalSectionList.size());
+
 
         try {
             PDFMergerUtility pdfMerger = new PDFMergerUtility();
@@ -522,7 +606,7 @@ public class SubmittalProcessing {
                 pdfMerger.addSource("temp\\" + i + ".pdf");
 
                 for (int j = 0; j < submittalSectionList.get(i).size(); j++) {
-                    File file = new File("temp\\" + i + j + ".pdf");
+                    File file = new File("temp\\" + i + "." + j + ".pdf");
                     pdfMerger.addSource(file);
                 }
             }
@@ -646,5 +730,65 @@ public class SubmittalProcessing {
 
         return numberOfPages;
     }
+
+    private static void searchReplace (String search, String replace, boolean replaceAll, PDDocument doc) throws IOException {
+
+        PDPageTree pages = doc.getDocumentCatalog().getPages();
+
+        for (PDPage page : pages) {
+            System.out.println(page.getStructParents());
+            if(page.getMetadata() != null) {
+                PDFStreamParser parser = new PDFStreamParser(page);
+                parser.parse();
+                List tokens = parser.getTokens();
+                for (int j = 0; j < tokens.size(); j++) {
+                    Object next = tokens.get(j);
+                    if (next instanceof Operator) {
+                        Operator op = (Operator) next;
+                        // Tj and TJ are the two operators that display strings in a PDF
+                        // Tj takes one operator and that is the string to display so lets update that operator
+                        if (op.getName().equals("Tj")) {
+                            COSString previous = (COSString) tokens.get(j - 1);
+                            System.out.println(previous);
+                            String string = previous.getString();
+                            if (replaceAll) {
+                                string = string.replaceAll(search, replace);
+                            } else {
+                                string = string.replaceFirst(search, replace);
+                            }
+                            previous.setValue(string.getBytes());
+                        } else if (op.getName().equals("TJ")) {
+                            COSArray previous = (COSArray) tokens.get(j - 1);
+                            for (int k = 0; k < previous.size(); k++) {
+                                Object arrElement = previous.getObject(k);
+                                if (arrElement instanceof COSString) {
+                                    COSString cosString = (COSString) arrElement;
+                                    String string = cosString.getString();
+
+                                    if (replaceAll) {
+                                        string = string.replaceAll(search, replace);
+                                    } else {
+                                        string = string.replaceFirst(search, replace);
+
+                                    }
+
+                                    cosString.setValue(string.getBytes());
+                                }
+                            }
+                        }
+                    }
+                }
+                // now that the tokens are updated we will replace the page content stream.
+                PDStream updatedStream = new PDStream(doc);
+                OutputStream out = updatedStream.createOutputStream();
+                ContentStreamWriter tokenWriter = new ContentStreamWriter(out);
+                tokenWriter.writeTokens(tokens);
+                out.close();
+                page.setContents(updatedStream);
+            }
+
+        }
+    }
+
 
 }

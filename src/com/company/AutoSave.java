@@ -21,7 +21,7 @@ public class AutoSave extends ProjectInfoWindow{
 
     public static String[] loadProjectInfo(File file) {
 
-        String[] savedInfo = new String[18];
+        String[] savedInfo = new String[23];
 
         try {
             if(file.exists()) {
@@ -145,12 +145,16 @@ public class AutoSave extends ProjectInfoWindow{
             File saveInfo = new File("Saves\\" + job);
             saveInfo.mkdirs();
             FileOutputStream fos;
-            if(volume.equals("")) {
-                fos = new FileOutputStream(saveInfo + "\\ProjectInfo.ser");
+            if(operationAndMain) {
+                    fos = new FileOutputStream(saveInfo + "\\Operation & Maintenance\\ProjectInfo.ser");
             } else {
-                File volSaveInfo = new File("Saves\\" + job + "\\" + volume);
-                volSaveInfo.mkdirs();
-                fos = new FileOutputStream(volSaveInfo + "\\ProjectInfo.ser");
+                if (volume.equals("")) {
+                    fos = new FileOutputStream(saveInfo + "\\ProjectInfo.ser");
+                } else {
+                    File volSaveInfo = new File("Saves\\" + job + "\\" + volume);
+                    volSaveInfo.mkdirs();
+                    fos = new FileOutputStream(volSaveInfo + "\\ProjectInfo.ser");
+                }
             }
             ObjectOutputStream oos = new ObjectOutputStream(fos);
             oos.writeObject(savedInfo);
@@ -176,10 +180,14 @@ public class AutoSave extends ProjectInfoWindow{
             File listAddition = new File("Saves\\" + job);
             listAddition.mkdirs();
             FileOutputStream fosMain;
-            if(volume.equals("")) {
-                fosMain = new FileOutputStream(listAddition + "\\ProjectOutline.ser");
+            if(operationAndMain) {
+                fosMain = new FileOutputStream(listAddition + "\\Operation & Maintenance\\ProjectOutline.ser");
             } else {
-                fosMain = new FileOutputStream(listAddition + "\\" + volume + "\\ProjectOutline.ser");
+                if (volume.equals("")) {
+                    fosMain = new FileOutputStream(listAddition + "\\ProjectOutline.ser");
+                } else {
+                    fosMain = new FileOutputStream(listAddition + "\\" + volume + "\\ProjectOutline.ser");
+                }
             }
             ObjectOutputStream oosMain = new ObjectOutputStream(fosMain);
             contentList.clear();
@@ -208,10 +216,14 @@ public class AutoSave extends ProjectInfoWindow{
             File listDeletion = new File("Saves\\" + job);
             listDeletion.mkdirs();
             FileOutputStream fosDeleteButton;
-            if(volume.equals("")) {
-                fosDeleteButton = new FileOutputStream(listDeletion + "\\ProjectOutline.ser");
+            if(operationAndMain) {
+                    fosDeleteButton = new FileOutputStream(listDeletion + "\\Operation & Maintenance\\ProjectOutline.ser");
             } else {
-                fosDeleteButton = new FileOutputStream(listDeletion + "\\" + volume + "\\ProjectOutline.ser");
+                if (volume.equals("")) {
+                    fosDeleteButton = new FileOutputStream(listDeletion + "\\ProjectOutline.ser");
+                } else {
+                    fosDeleteButton = new FileOutputStream(listDeletion + "\\" + volume + "\\ProjectOutline.ser");
+                }
             }
             ObjectOutputStream oosDeleteButton = new ObjectOutputStream(fosDeleteButton);
             contentList.clear();
@@ -240,10 +252,14 @@ public class AutoSave extends ProjectInfoWindow{
             File bottomDrag = new File("Saves\\" + job);
             bottomDrag.mkdirs();
             FileOutputStream fosDropped;
-            if(volume.equals("")) {
-                fosDropped = new FileOutputStream(bottomDrag + "\\ProjectOutline.ser");
+            if(operationAndMain) {
+                    fosDropped = new FileOutputStream(bottomDrag + "\\Operation & Maintenance\\ProjectOutline.ser");
             } else {
-                fosDropped = new FileOutputStream(bottomDrag + "\\" + volume + "\\ProjectOutline.ser");
+                if (volume.equals("")) {
+                    fosDropped = new FileOutputStream(bottomDrag + "\\ProjectOutline.ser");
+                } else {
+                    fosDropped = new FileOutputStream(bottomDrag + "\\" + volume + "\\ProjectOutline.ser");
+                }
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
             contentList.clear();
@@ -270,10 +286,14 @@ public class AutoSave extends ProjectInfoWindow{
             File listSwap = new File("Saves\\" + job);
             listSwap.mkdirs();
             FileOutputStream fosDropped;
-            if(volume.equals("")) {
-                fosDropped = new FileOutputStream(listSwap + "\\ProjectOutline.ser");
+            if(operationAndMain) {
+                    fosDropped = new FileOutputStream(listSwap + "\\Operation & Maintenance\\ProjectOutline.ser");
             } else {
-                fosDropped = new FileOutputStream(listSwap + "\\" + volume + "\\ProjectOutline.ser");
+                if (volume.equals("")) {
+                    fosDropped = new FileOutputStream(listSwap + "\\ProjectOutline.ser");
+                } else {
+                    fosDropped = new FileOutputStream(listSwap + "\\" + volume + "\\ProjectOutline.ser");
+                }
             }
             ObjectOutputStream oosDropped = new ObjectOutputStream(fosDropped);
             contentList.clear();

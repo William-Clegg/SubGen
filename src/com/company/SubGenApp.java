@@ -18,7 +18,28 @@ import java.util.List;
 import javax.imageio.*;
 import static Windows.OutlineWindow.outlineGrid;
 
+/*
+
+FEATURES TO ADD LIST
+
+ - Rename added documents within application, leaving the filename unchanged if desired
+
+ - Add page numbers in indicies and use text in indicies as bookmark links
+
+ - Complete general information tab, so any entity can use the software
+
+ - Standardize members page
+
+ - Standardize saving location
+
+ - Ensure any logo size fits
+
+ - Clean code, clean libraries, and implement an installer
+
+*/
+
 public class SubGenApp extends Application {
+
 
     public static Stage window;
     public static Scene scene, scene1;
@@ -39,22 +60,29 @@ public class SubGenApp extends Application {
     @Override
     public void start(Stage primaryStage) throws Exception {
 
+        System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         window = primaryStage;
         tabPane = new TabPane();
+        tabPane.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
         Tab projectInfo = new Tab();
         projectInfo.setText("Create a Submittal");
         projectInfo.setContent(sizingSample());
 
-        root = new TreeItem<>("Submittal");
+        root = new TreeItem<String>("Submittal");
         root.setExpanded(true);
         treeView = new TreeView<String>(root);
         treeView.setCellFactory(param -> new CustomTreeCell());
+        treeView.setEditable(true);
 
         Tab generalInformation = new Tab();
         generalInformation.setText("General Information");
         generalInformation.setContent(alignmentSample());
 
-        tabPane.getTabs().addAll(projectInfo, generalInformation);
+        Tab pdfSplit = new Tab();
+        pdfSplit.setText("PDF Splitter");
+        pdfSplit.setContent(splitSample());
+
+        tabPane.getTabs().addAll(projectInfo, generalInformation, pdfSplit);
 
         FileInputStream iconStream = new FileInputStream("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\src\\SGblackLarge.png");
         window.getIcons().add(new Image(iconStream));
@@ -82,6 +110,13 @@ public class SubGenApp extends Application {
     private Pane alignmentSample() {
 
         grid = SettingsWindow.createGrid();
+
+        return grid;
+    }
+
+    private Pane splitSample() {
+
+        grid = SplitWindow.createGrid();
 
         return grid;
     }
