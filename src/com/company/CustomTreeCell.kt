@@ -9,18 +9,24 @@ import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
 import javafx.scene.image.Image
 import javafx.scene.image.ImageView
-import javafx.scene.input.ClipboardContent
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyEvent
-import javafx.scene.input.TransferMode
 import javafx.scene.layout.HBox
 import java.io.FileInputStream
+import com.company.FilepathToTitle
+import com.company.PDFLineItem.Companion.format
+import javafx.scene.input.*
+import java.awt.Toolkit
+import java.awt.datatransfer.Clipboard
+import java.awt.datatransfer.ClipboardOwner
+import java.awt.datatransfer.Transferable
+import javax.sound.sampled.Clip
 
 
-class CustomTreeCell : TreeCell<String>() {
+class CustomTreeCell : TreeCell<PDFLineItem>() {
 
     var thisCell = this
     private var textField : TextField? = null
+
+    val fp = FilepathToTitle()
 
     init {
 
@@ -28,17 +34,17 @@ class CustomTreeCell : TreeCell<String>() {
             if(item == null) {
                 return@setOnDragDetected
             }
-            var dragboard = startDragAndDrop(TransferMode.MOVE)
-            var content = ClipboardContent()
-            content.putString(item)
+            val dragboard = startDragAndDrop(TransferMode.MOVE)
+            val content = ClipboardContent()
+            content.put(format, item)
             dragboard.setContent(content)
             event.consume()
         }
 
         setOnDragOver { event ->
 
-            var db = event.dragboard
-            if(event.gestureSource != thisCell && db.hasString()) {
+            val db = event.dragboard
+            if(event.gestureSource != thisCell && db.hasContent(format)) {
                 event.acceptTransferModes(TransferMode.MOVE)
             } else if(db.hasFiles()) {
                 event.acceptTransferModes(TransferMode.COPY)
@@ -48,17 +54,16 @@ class CustomTreeCell : TreeCell<String>() {
         }
 
         setOnDragEntered { event ->
-            if (event.gestureSource !== thisCell && event.dragboard.hasString()) {
+            if (event.gestureSource !== thisCell && event.dragboard.hasContent(format)) {
                 opacity = 0.3
             }
         }
 
         setOnDragExited { event ->
-            if (event.gestureSource !== thisCell && event.dragboard.hasString()) {
+            if (event.gestureSource !== thisCell && event.dragboard.hasContent(format)) {
                 opacity = 1.0
             }
         }
-
 
 
         setOnDragDropped { event ->
@@ -72,17 +77,17 @@ class CustomTreeCell : TreeCell<String>() {
                     db.files.forEach {
                         val childrenOfLastMain = treeView.root.children.get(treeView.root.children.size-1).children
                         if(childrenOfLastMain.size > 0) {
-                            childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<String>(it.absolutePath))
+                            childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<PDFLineItem>(PDFLineItem(3, fp.toTitle(it.absolutePath),it.absolutePath)))
                         }
                     }
                     event.consume()
                 } else {
 
-                    if(selectedItem.parent.value.equals("Submittal")) {
+                    if(selectedItem.parent.value.title.equals("Submittal")) {
                         treeView.root.children.remove(selectedItem)
                         treeView.root.children.add(selectedItem)
                         event.consume()
-                    } else if(selectedItem.parent.parent.value.equals("Submittal")) {
+                    } else if(selectedItem.parent.parent.value.title.equals("Submittal")) {
                         val list = selectedItem.children
                         selectedItem.parent.children.remove(selectedItem)
                         treeView.root.children.get(treeView.root.children.size-1).children.add(TreeItem(selectedItem.value))
@@ -92,7 +97,7 @@ class CustomTreeCell : TreeCell<String>() {
                         val childrenOfLastMain = treeView.root.children.get(treeView.root.children.size-1).children
                         if(childrenOfLastMain.size > 0) {
                             selectedItem.parent.children.remove(selectedItem)
-                            childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<String>(selectedItem.value))
+                            childrenOfLastMain.get(childrenOfLastMain.size - 1).children.add(TreeItem<PDFLineItem>(selectedItem.value))
                         }
                         event.consume()
                     }
@@ -105,19 +110,19 @@ class CustomTreeCell : TreeCell<String>() {
                 if(db.hasFiles()) {
 
                     db.files.forEach {
-                        if (treeItem.parent.parent.value.equals("Submittal")) {
-                            treeItem.children.add(0, TreeItem(it.absolutePath))
-                        } else if (treeItem.parent.parent.parent.value.equals("Submittal")) {
-                            treeItem.parent.children.add(treeItem.parent.children.indexOf(treeItem)+1, TreeItem(it.absolutePath))
+                        if (treeItem.parent.parent.value.title.equals("Submittal")) {
+                            treeItem.children.add(0, TreeItem(PDFLineItem(3, fp.toTitle(it.absolutePath), it.absolutePath)))
+                        } else if (treeItem.parent.parent.parent.value.title.equals("Submittal")) {
+                            treeItem.parent.children.add(treeItem.parent.children.indexOf(treeItem)+1, TreeItem(PDFLineItem(3, fp.toTitle(it.absolutePath), it.absolutePath)))
                         }
                     }
                     event.consume()
 
-                } else if(selectedItem.parent.value.equals("Submittal")) {
+                } else if(selectedItem.parent.value.title.equals("Submittal")) {
 
                     treeView.root.children.remove(selectedItem)
                     if(treeItem.parent != null) {
-                        while (!topItem.parent.value.equals("Submittal")) {
+                        while (!topItem.parent.value.title.equals("Submittal")) {
                             topItem = treeItem.parent
                         }
                         val thisIndex = treeView.root.children.indexOf(topItem)
@@ -127,14 +132,14 @@ class CustomTreeCell : TreeCell<String>() {
                     }
                     event.consume()
 
-                } else if(selectedItem.parent.parent.value.equals("Submittal")) {
+                } else if(selectedItem.parent.parent.value.title.equals("Submittal")) {
 
                     if(treeItem.parent != null) {
                         selectedItem.parent.children.remove(selectedItem)
-                        if(treeItem.parent.value.equals("Submittal")) {
+                        if(treeItem.parent.value.title.equals("Submittal")) {
                             treeItem.children.add(0, selectedItem)
                         } else {
-                            if(!treeItem.parent.parent.value.equals("Submittal")) {
+                            if(!treeItem.parent.parent.value.title.equals("Submittal")) {
                                 topItem = treeItem.parent
                             }
                             val thisIndex = topItem.parent.children.indexOf(topItem)
@@ -152,7 +157,7 @@ class CustomTreeCell : TreeCell<String>() {
                     if(treeItem.parent.parent != null) {
 
                         selectedItem.parent.children.remove(selectedItem)
-                        if(treeItem.parent.parent.value.equals("Submittal")) {
+                        if(treeItem.parent.parent.value.title.equals("Submittal")) {
                             treeItem.children.add(0, selectedItem)
                         } else {
                             treeItem.parent.children.add(treeItem.parent.children.indexOf(treeItem), selectedItem)
@@ -166,6 +171,7 @@ class CustomTreeCell : TreeCell<String>() {
         }
     }
 
+    /*
     override fun startEdit() {
         super.startEdit()
 
@@ -195,6 +201,8 @@ class CustomTreeCell : TreeCell<String>() {
         text = item as String
         graphic = treeItem.graphic
     }
+    */
+
 
     private fun getString() : String {
         if(item == null) {
@@ -204,7 +212,7 @@ class CustomTreeCell : TreeCell<String>() {
         }
     }
 
-    override fun updateItem(item: String?, empty: Boolean) {
+    override fun updateItem(item: PDFLineItem?, empty: Boolean) {
         super.updateItem(item, empty)
 
         //graphic credit
@@ -215,12 +223,12 @@ class CustomTreeCell : TreeCell<String>() {
             graphic = null
         } else {
 
-            val image = ImageView(Image(FileInputStream("pencil-edit-button-light.png")))
-            image.fitHeight = 12.0
-            image.fitWidth = 12.0
-            val cellBox = HBox(10.0)
-            cellBox.children.add(image)
-            image.isPickOnBounds = true
+            //val image = ImageView(Image(FileInputStream("pencil-edit-button-light.png")))
+            //image.fitHeight = 12.0
+            //image.fitWidth = 12.0
+            //val cellBox = HBox(10.0)
+            //cellBox.children.add(image)
+            //image.isPickOnBounds = true
 
             if(isEditing) {
                 if(textField != null) {
@@ -230,19 +238,19 @@ class CustomTreeCell : TreeCell<String>() {
                 graphic = textField
             } else {
 
-                graphic = cellBox
+                //graphic = cellBox
                 if (getItem() == null) {
                     text = ""
-                } else if (item?.contains("\\") ?: false) {
-                    text = item?.substring(item.lastIndexOf('\\') + 1/*, item.lastIndexOf('.')*/)
                 } else {
-                    text = item?.trim()
+                    text = item?.title
                 }
             }
 
+            /*
             image.setOnMouseClicked { event ->
                 val field = TextField()
             }
+            */
         }
     }
 }

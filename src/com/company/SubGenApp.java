@@ -2,10 +2,6 @@ package com.company;
 
 import Windows.ProjectInfoWindow;
 import javafx.application.Application;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.image.Image;
@@ -16,6 +12,7 @@ import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.*;
+
 import static Windows.OutlineWindow.outlineGrid;
 
 /*
@@ -47,12 +44,10 @@ public class SubGenApp extends Application {
     public final static ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
     GridPane grid;
 
-    public static ObservableList<String> subSheets = FXCollections.observableArrayList();
+    public static List<PDFLineItem> contentList = new ArrayList<>();
 
-    public static List<String> contentList = new ArrayList<>();
-
-    public static TreeItem<String> root;
-    public static TreeView<String> treeView;
+    public static TreeItem<PDFLineItem> root;
+    public static TreeView<PDFLineItem> treeView;
 
     public static List<String> southernList = new ArrayList<>();
     public static List<Integer> southernListIndex = new ArrayList<>();
@@ -68,9 +63,9 @@ public class SubGenApp extends Application {
         projectInfo.setText("Create a Submittal");
         projectInfo.setContent(sizingSample());
 
-        root = new TreeItem<String>("Submittal");
+        root = new TreeItem<PDFLineItem>(new PDFLineItem(0,"Submittal", null));
         root.setExpanded(true);
-        treeView = new TreeView<String>(root);
+        treeView = new TreeView<PDFLineItem>(root);
         treeView.setCellFactory(param -> new CustomTreeCell());
         treeView.setEditable(true);
 

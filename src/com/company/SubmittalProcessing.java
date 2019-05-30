@@ -3,35 +3,20 @@ package com.company;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfConverter;
 import fr.opensagres.poi.xwpf.converter.pdf.PdfOptions;
 import javafx.scene.control.TreeItem;
-import javafx.scene.text.Text;
 import org.apache.pdfbox.contentstream.operator.Operator;
 import org.apache.pdfbox.cos.COSArray;
-import org.apache.pdfbox.cos.COSStream;
 import org.apache.pdfbox.cos.COSString;
-import org.apache.pdfbox.io.MemoryUsageSetting;
-import org.apache.pdfbox.io.ScratchFile;
 import org.apache.pdfbox.multipdf.PDFMergerUtility;
 import org.apache.pdfbox.pdfparser.PDFStreamParser;
 import org.apache.pdfbox.pdfwriter.ContentStreamWriter;
 import org.apache.pdfbox.pdmodel.*;
-import org.apache.pdfbox.pdmodel.common.PDMetadata;
-import org.apache.pdfbox.pdmodel.common.PDRectangle;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
-import org.apache.pdfbox.pdmodel.graphics.color.PDDeviceRGB;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotation;
-import org.apache.pdfbox.pdmodel.interactive.annotation.PDAnnotationTextMarkup;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitHeightDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineItem;
-import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDOutlineNode;
-import org.apache.pdfbox.rendering.PDFRenderer;
-import org.apache.pdfbox.text.PDFTextStripper;
-import org.apache.pdfbox.text.TextPosition;
 import org.apache.pdfbox.util.Matrix;
 import org.apache.poi.xwpf.usermodel.*;
 import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTPageSz;
@@ -39,25 +24,17 @@ import org.openxmlformats.schemas.wordprocessingml.x2006.main.CTSectPr;
 
 import javax.imageio.spi.IIORegistry;
 import java.awt.*;
-import java.awt.image.BufferedImage;
 import java.io.*;
 import java.math.BigInteger;
-import java.nio.CharBuffer;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
 import static Windows.ProjectInfoWindow.*;
 import static com.company.SubGenApp.*;
-import static com.company.SubGenApp.subSheets;
 
 /*--------------------------------------------------------------------------------
  *  Class which creates the submittal document from the project info and outline.
  */
-
-//HI
 
 //word page with 600L margins comprised of 69 vertical 8 point font 69*8 = 552
 
@@ -72,18 +49,11 @@ public class SubmittalProcessing {
     private static float pageLoc;
     private static int mainIndexPages = 0;
     private static ArrayList<Integer> subIndexPages = new ArrayList<>();
-    private static ArrayList<Integer> subIndexPagesForecast = new ArrayList<>();
-    private static int currentDocPage = 1;
 
     public void processSubmittalContent() {
 
         IIORegistry registry = IIORegistry.getDefaultInstance();
         registry.registerServiceProvider(new com.github.jaiimageio.jpeg2000.impl.J2KImageReaderSpi());
-
-        subSheets.clear();
-        for (String it: contentList) {
-            subSheets.add(it);
-        }
 
         if(!removeMainContents) {
             XWPFDocument mainIndexDoc = new XWPFDocument();
@@ -110,14 +80,12 @@ public class SubmittalProcessing {
             int curSubNum = 1;
             boolean newCat = false;
 
-            System.out.println("subsheets right before processing" + subSheets.toString());
-
-            for (int i = 0; i < subSheets.size(); i++) {
+            for (int i = 0; i < contentList.size(); i++) {
                 XWPFRun r12 = p9.createRun();
                 r12.setFontSize(14);
                 r12.setFontFamily("Calibri (Body)");
 
-                if (!subSheets.get(i).substring(0, 2).equals("  ")) {
+                if (contentList.get(i).getTier() == 1) {
                     r12.getCTR().insertNewBr(1);
 
                     if (i > 0) {
@@ -130,12 +98,12 @@ public class SubmittalProcessing {
 
                     curNumString = curNum + ") ";
                     r12.setBold(true);
-                    r12.setText(curNumString + subSheets.get(i));
+                    r12.setText(curNumString + contentList.get(i).getTitle());
                     r12.setBold(true);
 
                 }
 
-                if (subSheets.get(i).substring(0, 2).equals("  ") && (!subSheets.get(i).substring(0, 4).equals("    ") || subSheets.get(i).length() < 4)) {
+                if (contentList.get(i).getTier() == 2 || contentList.get(i).getTitle().length() < 4) {
 
                     if (newCat) {
                         r12.setFontSize(12);
@@ -148,16 +116,16 @@ public class SubmittalProcessing {
 
                         int dashSpaceInd = -1;
 
-                        if(subSheets.get(i).contains("- ")) {
-                            dashSpaceInd = subSheets.get(i).indexOf("- ");
+                        if(contentList.get(i).getTitle().contains("- ")) {
+                            dashSpaceInd = contentList.get(i).getTitle().indexOf("- ");
                         }
 
                         if(dashSpaceInd != -1) {
-                            r12.setText("    " + subSheets.get(i).substring(0, dashSpaceInd+1) + subSheets.get(i).substring(dashSpaceInd + 1));
+                            r12.setText("    " + contentList.get(i).getTitle().substring(0, dashSpaceInd+1) + contentList.get(i).getTitle().substring(dashSpaceInd + 1));
                             curSubNum += 1;
 
                         } else {
-                            r12.setText("    " + subSheets.get(i));
+                            r12.setText("    " + contentList.get(i).getTitle());
                             curSubNum += 1;
                         }
                     }
@@ -172,14 +140,11 @@ public class SubmittalProcessing {
 
         for(int i = 0; i < root.getChildren().size(); i++) {
             PDPage page = new PDPage();
-            float pw = page.getCropBox().getUpperRightX();
-            float ph = page.getCropBox().getUpperRightY();
-            subIndexPagesForecast.add(pageNumberForecast(root.getChildren().get(i), pw, ph));
             ArrayList<PDDocument> sectionList = new ArrayList<>();
             ArrayList<String> sectionListFile = new ArrayList<>();
             for(int j = 0; j < root.getChildren().get(i).getChildren().size(); j++) {
                 for(int k = 0; k < root.getChildren().get(i).getChildren().get(j).getChildren().size(); k++) {
-                    File file = new File(root.getChildren().get(i).getChildren().get(j).getChildren().get(k).getValue());
+                    File file = new File(root.getChildren().get(i).getChildren().get(j).getChildren().get(k).getValue().getLinePath());
                     try {
                         PDDocument doc = PDDocument.load(file);
                         sectionList.add(doc);
@@ -195,12 +160,6 @@ public class SubmittalProcessing {
         }
 
         try {
-            if(!removeMainContents) {
-                currentDocPage += mainIndexPages;
-            }
-            if(!removeMembers) {
-                currentDocPage++;
-            }
             traverseOutline(root, 0, null);
         } catch(IOException mainIndexIO) {
             System.err.println("IO Exception for mainIndexDoc");
@@ -335,13 +294,9 @@ public class SubmittalProcessing {
 
         File tempFolder = new File("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\temp");
 
-        /*for(File file: tempFolder.listFiles()) {
-            file.delete();
-        }*/
-
     }
 
-    private static void traverseOutline(TreeItem<String> node, int level, PDDocument sectionContents) throws IOException {
+    private static void traverseOutline(TreeItem<PDFLineItem> node, int level, PDDocument sectionContents) throws IOException {
 
         if(level == 1) {
             pageLoc = 0;
@@ -358,7 +313,7 @@ public class SubmittalProcessing {
             stream.setFont(boldFont, 20);
             pageLoc += 80;
             stream.newLineAtOffset(pw/10, ph - pageLoc);
-            stream.showText((node.getParent().getChildren().indexOf(node)+1) + ") " + node.getValue());
+            stream.showText((node.getParent().getChildren().indexOf(node)+1) + ") " + node.getValue().getTitle());
             stream.endText();
             stream.close();
 
@@ -375,9 +330,9 @@ public class SubmittalProcessing {
                 stream.setFont(boldFont, 16);
                 stream.newLineAtOffset(pw / 8, ph - pageLoc);
                 if((pageLoc+40) + ((node.getChildren().size()-1)*20) > ph-40) {
-                    stream.showText(node.getValue()/* + " (cont…)"*/);
+                    stream.showText(node.getValue().getTitle()/* + " (cont…)"*/);
                 } else {
-                    stream.showText(node.getValue());
+                    stream.showText(node.getValue().getTitle());
                 }
                 stream.endText();
                 stream.close();
@@ -390,7 +345,7 @@ public class SubmittalProcessing {
                 stream.beginText();
                 stream.setFont(boldFont, 16);
                 stream.newLineAtOffset(pw / 8, ph - pageLoc);
-                stream.showText(node.getValue());
+                stream.showText(node.getValue().getTitle());
                 stream.endText();
                 stream.close();
             }
@@ -400,9 +355,7 @@ public class SubmittalProcessing {
             PDPage page = sectionContents.getPage(sectionContents.getNumberOfPages()-1);
             float pw = page.getCropBox().getUpperRightX();
             float ph = page.getCropBox().getUpperRightY();
-            int slashIndex = node.getValue().lastIndexOf('\\') + 1;
-            int dotIndex = node.getValue().lastIndexOf('.');
-            String subFileName = node.getValue().substring(slashIndex, dotIndex);
+            String subFileName = node.getValue().getTitle();
             pageLoc += 20;
             if(pageLoc <= ph - 60) {
                 PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
@@ -426,7 +379,7 @@ public class SubmittalProcessing {
                 stream.beginText();
                 stream.setFont(boldFont, 16);
                 stream.newLineAtOffset((float)(pw / 8), ph - pageLoc);
-                stream.showText(node.getParent().getValue() + " (cont…)");
+                stream.showText(node.getParent().getValue().getTitle() + " (cont…)");
                 stream.endText();
 
                 pageLoc += 40;
@@ -442,12 +395,12 @@ public class SubmittalProcessing {
             PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
             stream.beginText();
             stream.setFont(font, 12);
-            stream.newLineAtOffset((float)(pw - 50), ph - pageLoc);
+            stream.newLineAtOffset((float)(pw - 60), ph - pageLoc);
             stream.showText("Pg ```");
             stream.endText();
             stream.close();
 
-            File sourceFile = new File(node.getValue());
+            File sourceFile = new File(node.getValue().getLinePath());
             if(sourceFile.exists()) {
 
                 try {
@@ -459,20 +412,19 @@ public class SubmittalProcessing {
                         PDPage specPage = document.getPage(k);
                         float specPw = specPage.getCropBox().getUpperRightX();
                         float specPh = specPage.getCropBox().getUpperRightY();
-                        System.out.println(subFileName);
 
                         try {
 
                             String header;
                             if(operationAndMain) {
-                                header = node.getParent().getParent().getValue() + " / " + node.getParent().getValue() + " / " +
-                                        node.getValue().substring(node.getValue().lastIndexOf("\\") + 1, node.getValue().lastIndexOf("."));
+                                header = node.getParent().getParent().getValue().getTitle() + " / " + node.getParent().getValue().getTitle() + " / " +
+                                        node.getValue().getTitle();
 
                             } else {
-                                if (node.getParent().getParent().getValue().contains("Fixtures")) {
-                                    header = node.getParent().getParent().getValue() + "  /  " + subFileName;
+                                if (node.getParent().getParent().getValue().getTitle().contains("Fixtures")) {
+                                    header = node.getParent().getParent().getValue().getTitle() + "  /  " + subFileName;
                                 } else {
-                                    header = node.getParent().getParent().getValue() + "  /  " + node.getParent().getValue();
+                                    header = node.getParent().getParent().getValue().getTitle() + "  /  " + node.getParent().getValue().getTitle();
                                 }
                             }
                             float textWidth = boldFont.getStringWidth(header) / 1000 * 12;
@@ -539,7 +491,7 @@ public class SubmittalProcessing {
         }
 
         if(level < 3) {
-            for (TreeItem<String> it : node.getChildren()) {
+            for (TreeItem<PDFLineItem> it : node.getChildren()) {
 
                 if (level == 0) {
                     traverseOutline(it, level + 1, null);
@@ -655,7 +607,7 @@ public class SubmittalProcessing {
             PDPageDestination sectionDest = new PDPageFitWidthDestination();
             sectionDest.setPage(sectionIndex);
             PDOutlineItem sectionIndexItem = new PDOutlineItem();
-            sectionIndexItem.setTitle(root.getChildren().get(i).getValue());
+            sectionIndexItem.setTitle(root.getChildren().get(i).getValue().getTitle());
             sectionIndexItem.setDestination(sectionDest);
             PDroot.addLast(sectionIndexItem);
             sectionIndexItem.openNode();
@@ -668,7 +620,7 @@ public class SubmittalProcessing {
                 PDPageDestination subDest = new PDPageFitWidthDestination();
                 subDest.setPage(subIndex);
                 PDOutlineItem subItem = new PDOutlineItem();
-                subItem.setTitle(root.getChildren().get(i).getChildren().get(j).getValue());
+                subItem.setTitle(root.getChildren().get(i).getChildren().get(j).getValue().getTitle());
                 subItem.setDestination(subDest);
                 sectionIndexItem.addLast(subItem);
 
@@ -679,7 +631,7 @@ public class SubmittalProcessing {
                     PDPageDestination sheetDest = new PDPageFitWidthDestination();
                     sheetDest.setPage(subSheet);
                     PDOutlineItem subSheetItem = new PDOutlineItem();
-                    String fullPath = root.getChildren().get(i).getChildren().get(j).getChildren().get(k).getValue();
+                    String fullPath = root.getChildren().get(i).getChildren().get(j).getChildren().get(k).getValue().getLinePath();
                     subSheetItem.setTitle(fullPath.substring(fullPath.lastIndexOf('\\')+1, fullPath.lastIndexOf('.')));
                     subSheetItem.setDestination(sheetDest);
                     subItem.addLast(subSheetItem);
@@ -693,8 +645,6 @@ public class SubmittalProcessing {
         outline.openNode();
         PDroot.openNode();
 
-        System.out.println(currentPage);
-
         try {
             completeDoc.save("temp\\mergedSubmittal.pdf");
             completeDoc.close();
@@ -702,35 +652,6 @@ public class SubmittalProcessing {
             System.err.println(e.getMessage());
         }
 
-    }
-
-    private static int pageNumberForecast(TreeItem<String> node, float pw, float ph) {
-        int numberOfPages = 1;
-        int currentLocation = 80;
-
-        for(int i = 0; i < node.getChildren().size(); i++) {
-            currentLocation += 50;
-            if(currentLocation > ph - 80) {
-                numberOfPages++;
-                currentLocation = 60;
-            }
-
-            for(int j = 0; j < node.getChildren().get(i).getChildren().size(); j++) {
-
-                if(currentLocation > ph - 80) {
-                    numberOfPages++;
-                    currentLocation = 100;
-                } else {
-                    if (j == 0) {
-                        currentLocation += 40;
-                    } else {
-                        currentLocation += 20;
-                    }
-                }
-            }
-        }
-
-        return numberOfPages;
     }
 
     private static void searchReplace (String search, String replace, boolean replaceAll, PDDocument doc) throws IOException {

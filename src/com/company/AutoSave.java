@@ -55,21 +55,20 @@ public class AutoSave extends ProjectInfoWindow{
         try {
             FileInputStream fis = new FileInputStream(file);
             ObjectInputStream ois = new ObjectInputStream(fis);
-            contentList = (ArrayList<String>) ois.readObject();
-            System.out.println("The list of Strings " + contentList.toString());
+            contentList = (ArrayList<PDFLineItem>) ois.readObject();
 
             treeView.getRoot().getChildren().clear();
 
             for(int i = 0; i < contentList.size(); i++) {
 
-                if(contentList.get(i).substring(0,4).equals("    ")) {
+                if(contentList.get(i).getTier() == 3) {
                     getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren()
                             .get(getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren().size()-1)
-                            .getChildren().add(new TreeItem<>(contentList.get(i).substring(4)));
-                } else if(contentList.get(i).substring(0,2).equals("  ") && !contentList.get(i).substring(0,4).equals("    ")) {
+                            .getChildren().add(new TreeItem<PDFLineItem>(contentList.get(i)));
+                } else if(contentList.get(i).getTier() == 2) {
                     getTreeView().getRoot().getChildren().get(getTreeView().getRoot().getChildren().size()-1).getChildren()
-                            .add(new TreeItem<>(contentList.get(i).substring(2)));
-                } else if(!contentList.get(i).substring(0,2).equals("  ")) {
+                            .add(new TreeItem<>(contentList.get(i)));
+                } else if(contentList.get(i).getTier() == 1) {
                     getTreeView().getRoot().getChildren().add(new TreeItem<>(contentList.get(i)));
                 }
             }
@@ -77,8 +76,10 @@ public class AutoSave extends ProjectInfoWindow{
             ois.close();
 
         } catch (IOException savedInfoLoadE) {
+            System.err.println("IOException in AutoSave trying to load last list");
             savedInfoLoadE.printStackTrace();
         } catch (ClassNotFoundException noClass) {
+            System.err.println("ClassNotFoundException in AutoSave trying to load last list");
             noClass.printStackTrace();
         }
     }
@@ -190,10 +191,17 @@ public class AutoSave extends ProjectInfoWindow{
                 }
             }
             ObjectOutputStream oosMain = new ObjectOutputStream(fosMain);
+            System.out.println("Size of contentList before clear is " + contentList.size());
             contentList.clear();
             OutlineWindow.createListFromTree(getRoot(), 0);
+            System.out.println("Size of contentList is " + contentList.size());
             oosMain.writeObject(contentList);
             oosMain.close();
+
+
+            for(PDFLineItem item : contentList) {
+                System.out.print(item.getTitle() + " : ");
+            }
 
         } catch (FileNotFoundException mainSave) {
             mainSave.printStackTrace();

@@ -8,12 +8,12 @@ import java.io.File;
 
 import static com.company.SubGenApp.southernList;
 import static com.company.SubGenApp.southernListIndex;
-import static com.company.SubGenApp.subSheets;
 
 public class OcrProcessing {
 
     public static void readSouthernDoc(int i) {
 
+        /*
         System.out.println("GETTING IN ONE");
         try {
             System.out.println("GETTING IN TWO");
@@ -86,12 +86,14 @@ public class OcrProcessing {
                 }
 
                 pageNumber++;
-            }*/
+            }
             document.close();
 
         } catch (Exception ocr) {
             ocr.printStackTrace();
         }
+        */
+
     }
 
 }

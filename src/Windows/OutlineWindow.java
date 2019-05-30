@@ -1,6 +1,7 @@
 package Windows;
 
 import com.company.GeneralProcessing;
+import com.company.PDFLineItem;
 import javafx.event.EventHandler;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -42,8 +43,6 @@ public class OutlineWindow {
         grid.setGridLinesVisible(false);
         grid.setPadding(new Insets(25, 25, 50, 50));
 
-        ListView<String> fileListView = new ListView<>(subSheets);
-        //fileListView.setCellFactory(param -> new FileCell());
         grid.add(treeView, 0, 0, 3, 11);
 
         Label title = new Label();
@@ -137,13 +136,13 @@ public class OutlineWindow {
     }
 
     private static void addMainCategory(TextField mainCatField) {
-        if (!mainCatField.getText().isEmpty() && !subSheets.contains(mainCatField.getText())) {
+        if (!mainCatField.getText().isEmpty() /*&& !contentList.contains(mainCatField.getText())*/) {
 
-            TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
-            TreeItem<String> newItem = new TreeItem<>(mainCatField.getText());
+            TreeItem<PDFLineItem> selectedItem = treeView.getSelectionModel().getSelectedItem();
+            TreeItem<PDFLineItem> newItem = new TreeItem<>(new PDFLineItem(1, mainCatField.getText(), null));
             newItem.setExpanded(true);
             if(selectedItem != null && selectedItem.getParent() != null) {
-                if (selectedItem.getParent().getValue().equals("Submittal")) {
+                if (selectedItem.getParent().getValue().getTitle().equals("Submittal")) {
                     selectedItem.getParent().getChildren().add(selectedItem.getParent().getChildren().indexOf(selectedItem), newItem);
                 } else {
                     root.getChildren().add(newItem);
@@ -159,15 +158,15 @@ public class OutlineWindow {
 
         if (!subCatField.getText().isEmpty() && root.getChildren().size() != 0) {
 
-            TreeItem<String> selectedItem = treeView.getSelectionModel().getSelectedItem();
+            TreeItem<PDFLineItem> selectedItem = treeView.getSelectionModel().getSelectedItem();
 
             String content = subCatField.getText();
-            TreeItem<String> newItem = new TreeItem<>(content);
+            TreeItem<PDFLineItem> newItem = new TreeItem<>(new PDFLineItem(2, content,null));
             newItem.setExpanded(true);
 
             if(selectedItem != null && selectedItem.getParent() != null) {
 
-                if (selectedItem.getParent().getValue().equals("Submittal")) {
+                if (selectedItem.getParent().getValue().getTitle().equals("Submittal")) {
 
                     selectedItem.getChildren().add(newItem);
                 } else if (selectedItem.getParent().getParent() != null) {
@@ -196,33 +195,26 @@ public class OutlineWindow {
         return root;
     }
 
-    public static void setRoot(TreeItem<String> loadRoot) {
+    public static void setRoot(TreeItem<PDFLineItem> loadRoot) {
         root = loadRoot;
     }
 
-    public static void createListFromTree(TreeItem<String> node, int level) {
+    public static void createListFromTree(TreeItem<PDFLineItem> node, int level) {
 
-        String space;
-
-        if(level == 3) {
-            space = "    ";
-        } else if(level == 2) {
-            space = "  ";
-        } else {
-            space = "";
-        }
-        contentList.add(space + node.getValue());
+        contentList.add(node.getValue());
 
         if(level < 3) {
-            for (TreeItem<String> it : node.getChildren()) {
+            for (TreeItem<PDFLineItem> it : node.getChildren()) {
                 createListFromTree(it, level + 1);
             }
         }
 
-        contentList.remove("Submittal");
+        if(contentList.get(contentList.size()-1).getTier() == 0) {
+            contentList.remove(0);
+        }
     }
 
-    public static TreeView<String> getTreeView() {
+    public static TreeView<PDFLineItem> getTreeView() {
         return treeView;
     }
 }
