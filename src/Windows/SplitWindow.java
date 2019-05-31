@@ -1,4 +1,4 @@
-package com.company;
+package Windows;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
@@ -37,7 +37,7 @@ public class SplitWindow {
     private static ArrayList<PDDocument> specSet = new ArrayList<>();
     private static boolean titlePage = false;
 
-    static GridPane createGrid() {
+    public static GridPane createGrid() {
 
         IIORegistry registry = IIORegistry.getDefaultInstance();
         registry.registerServiceProvider(new com.github.jaiimageio.jpeg2000.impl.J2KImageReaderSpi());

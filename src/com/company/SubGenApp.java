@@ -1,6 +1,8 @@
 package com.company;
 
 import Windows.ProjectInfoWindow;
+import Windows.SettingsWindow;
+import Windows.SplitWindow;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
@@ -19,7 +21,7 @@ import static Windows.OutlineWindow.outlineGrid;
 
 FEATURES TO ADD LIST
 
- - Rename added documents within application, leaving the filename unchanged if desired
+ - Add Graphic/Button to edit item title
 
  - Add page numbers in indicies and use text in indicies as bookmark links
 

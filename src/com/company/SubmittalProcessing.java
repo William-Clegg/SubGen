@@ -13,6 +13,9 @@ import org.apache.pdfbox.pdmodel.*;
 import org.apache.pdfbox.pdmodel.common.PDStream;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.PDLineDashPattern;
+import org.apache.pdfbox.pdmodel.graphics.color.PDColor;
+import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.destination.PDPageFitWidthDestination;
 import org.apache.pdfbox.pdmodel.interactive.documentnavigation.outline.PDDocumentOutline;
@@ -49,6 +52,7 @@ public class SubmittalProcessing {
     private static float pageLoc;
     private static int mainIndexPages = 0;
     private static ArrayList<Integer> subIndexPages = new ArrayList<>();
+    private static ArrayList<IndexPageLayoutInfo> indexInfo = new ArrayList<>();
 
     public void processSubmittalContent() {
 
@@ -159,8 +163,17 @@ public class SubmittalProcessing {
             submittalSectionsFile.add(sectionListFile);
         }
 
+        for(PDFLineItem pdfLineItem : contentList) {
+
+            if(pdfLineItem.getTier() == 1) {
+
+                IndexPageLayoutInfo indexPageLayoutInfo = new IndexPageLayoutInfo(null, null, new ArrayList<>());
+                indexInfo.add(indexPageLayoutInfo);
+            }
+        }
+
         try {
-            traverseOutline(root, 0, null);
+            traverseOutline(root, 0, null, 0);
         } catch(IOException mainIndexIO) {
             System.err.println("IO Exception for mainIndexDoc");
         }
@@ -245,6 +258,7 @@ public class SubmittalProcessing {
 
                 }
 
+                /*
                 ArrayList<String> pageNumList = new ArrayList<String>();
 
                 PDOutlineItem node = completeDoc.getDocumentCatalog().getDocumentOutline().getFirstChild();
@@ -263,6 +277,61 @@ public class SubmittalProcessing {
 
                 for (String num : pageNumList) {
                     searchReplace("```", num, false, completeDoc);
+                }
+
+                 */
+
+                PDOutlineItem rootBookmark = completeDoc.getDocumentCatalog().getDocumentOutline().getFirstChild();
+
+                int i = 0;
+
+                for(PDOutlineItem outItem : rootBookmark.children()) {
+
+                    if(!outItem.getTitle().equals("Main Contents")) {
+
+                        System.out.println("FIRSTPAGENUM " + indexInfo.get(i).getFirstPageNum());
+
+                        PDPageDestination pd = (PDPageDestination) outItem.getDestination();
+
+                        System.out.println("Is this right? " + pd.retrievePageNumber());
+
+                        indexInfo.get(i).setPages(subIndexPages.get(i));
+
+                        indexInfo.get(i).setFirstPageNum(pd.retrievePageNumber() + 1);
+
+                        i++;
+                    }
+
+                }
+
+                for(int j = 0; j < indexInfo.size(); j++) {
+
+                    System.out.println("Pages check " + indexInfo.get(j).getPages());
+                    System.out.println("First page check " + indexInfo.get(j).getFirstPageNum());
+
+                    for(int k = 0; k < indexInfo.get(j).getPages(); k++) {
+
+                        PDPage currentPage = completeDoc.getPage(indexInfo.get(j).getFirstPageNum() + k);
+
+                        float pw = currentPage.getCropBox().getUpperRightX();
+                        float ph = currentPage.getCropBox().getUpperRightY();
+
+                        for(int l = 0; l < indexInfo.get(j).getLocations().size(); l++) {
+
+                            System.out.println("Location " + indexInfo.get(j).getLocations().get(l));
+
+                            System.out.println("And my current page is " + (indexInfo.get(j).getFirstPageNum() + k));
+                            System.out.println(ph);
+
+                            PDPageContentStream stream = new PDPageContentStream(completeDoc, currentPage, true, true, true);
+                            stream.beginText();
+                            stream.setFont(font, 12);
+                            stream.newLineAtOffset((float) (pw - 60), ph - indexInfo.get(j).getLocations().get(l));
+                            stream.showText("Pg ```");
+                            stream.endText();
+                            stream.close();
+                        }
+                    }
                 }
 
 
@@ -296,9 +365,11 @@ public class SubmittalProcessing {
 
     }
 
-    private static void traverseOutline(TreeItem<PDFLineItem> node, int level, PDDocument sectionContents) throws IOException {
+    private static void traverseOutline(TreeItem<PDFLineItem> node, int level, PDDocument sectionContents, int numMainContentsCompleted) throws IOException {
 
         if(level == 1) {
+            numMainContentsCompleted++;
+
             pageLoc = 0;
 
             sectionContents = new PDDocument();
@@ -367,6 +438,7 @@ public class SubmittalProcessing {
                 } else {
                     stream.newLineAtOffset((float)(pw / 5.5), ph - pageLoc);
                 }
+                indexInfo.get(numMainContentsCompleted).getLocations().add(pageLoc);
                 stream.showText(subFileName);
                 stream.endText();
                 stream.close();
@@ -379,6 +451,7 @@ public class SubmittalProcessing {
                 stream.beginText();
                 stream.setFont(boldFont, 16);
                 stream.newLineAtOffset((float)(pw / 8), ph - pageLoc);
+                indexInfo.get(numMainContentsCompleted).getLocations().add(pageLoc);
                 stream.showText(node.getParent().getValue().getTitle() + " (cont…)");
                 stream.endText();
 
@@ -387,18 +460,13 @@ public class SubmittalProcessing {
                 stream.beginText();
                 stream.setFont(font, 14);
                 stream.newLineAtOffset((float)(pw / 5.5), ph - pageLoc);
+                indexInfo.get(numMainContentsCompleted).getLocations().add(pageLoc);
                 stream.showText(subFileName);
                 stream.endText();
                 stream.close();
             }
 
-            PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
-            stream.beginText();
-            stream.setFont(font, 12);
-            stream.newLineAtOffset((float)(pw - 60), ph - pageLoc);
-            stream.showText("Pg ```");
-            stream.endText();
-            stream.close();
+
 
             File sourceFile = new File(node.getValue().getLinePath());
             if(sourceFile.exists()) {
@@ -466,8 +534,6 @@ public class SubmittalProcessing {
                     num += node.getParent().getChildren().indexOf(node);
                     File file = new File("temp\\" + node.getParent().getParent().getParent().getChildren().indexOf(node.getParent().getParent()) + "." +
                                             num + ".pdf");
-                    System.out.println("creating " + node.getParent().getParent().getParent().getChildren().indexOf(node.getParent().getParent()) + " and " +
-                            num);
                     document.save(file);
                     document.close();
 
@@ -494,11 +560,11 @@ public class SubmittalProcessing {
             for (TreeItem<PDFLineItem> it : node.getChildren()) {
 
                 if (level == 0) {
-                    traverseOutline(it, level + 1, null);
+                    traverseOutline(it, level + 1, null, numMainContentsCompleted);
                 } else if (level == 1) {
-                    traverseOutline(it, level + 1, sectionContents);
+                    traverseOutline(it, level + 1, sectionContents, numMainContentsCompleted);
                 } else if (level == 2) {
-                    traverseOutline(it, level + 1, sectionContents);
+                    traverseOutline(it, level + 1, sectionContents, numMainContentsCompleted);
                 }
             }
         }
@@ -659,7 +725,6 @@ public class SubmittalProcessing {
         PDPageTree pages = doc.getDocumentCatalog().getPages();
 
         for (PDPage page : pages) {
-            System.out.println(page.getStructParents());
             if(page.getMetadata() != null) {
                 PDFStreamParser parser = new PDFStreamParser(page);
                 parser.parse();

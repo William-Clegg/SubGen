@@ -1,13 +1,13 @@
-package com.company;
+package Windows;
 
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
 import javafx.scene.layout.GridPane;
 
-class SettingsWindow {
+public class SettingsWindow {
 
-    static GridPane createGrid() {
+    public static GridPane createGrid() {
         GridPane grid = new GridPane();
         grid.setAlignment(Pos.CENTER);
         grid.setHgap(10);

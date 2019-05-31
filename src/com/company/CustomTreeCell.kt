@@ -171,7 +171,7 @@ class CustomTreeCell : TreeCell<PDFLineItem>() {
         }
     }
 
-    /*
+
     override fun startEdit() {
         super.startEdit()
 
@@ -188,7 +188,7 @@ class CustomTreeCell : TreeCell<PDFLineItem>() {
         textField?.setOnKeyPressed { event: KeyEvent? ->
 
             if(event?.code == KeyCode.ENTER) {
-                commitEdit(textField?.text)
+                commitEdit(PDFLineItem(item.tier, textField?.text, item.linePath))
             } else if (event?.code == KeyCode.ESCAPE){
                 cancelEdit()
             }
@@ -198,17 +198,18 @@ class CustomTreeCell : TreeCell<PDFLineItem>() {
 
     override fun cancelEdit() {
         super.cancelEdit()
-        text = item as String
+        text = item.title
+        textField?.text = item.title
         graphic = treeItem.graphic
     }
-    */
 
 
-    private fun getString() : String {
+
+    private fun getString() : String? {
         if(item == null) {
             return ""
         } else {
-            return item.toString()
+            return item.title
         }
     }
 
