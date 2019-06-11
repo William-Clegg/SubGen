@@ -19,8 +19,6 @@ import java.io.FileOutputStream
 import org.apache.poi.xwpf.usermodel.XWPFRun
 import org.apache.poi.xwpf.usermodel.XWPFParagraph
 
-
-
 class GeneralProcessing {
 
     //private var coverPageDoc = XWPFDocument(FileInputStream("CoverPage.docx"))
