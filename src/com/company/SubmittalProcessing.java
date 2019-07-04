@@ -49,7 +49,6 @@ import static com.company.SubGenApp.*;
 public class SubmittalProcessing {
 
     private static ArrayList<ArrayList<PDDocument>> submittalSections = new ArrayList<>();
-    private static ArrayList<ArrayList<String>> submittalSectionsFile = new ArrayList<>();
 
     private static PDFont boldFont = PDType1Font.HELVETICA_BOLD;
     private static PDFont font = PDType1Font.HELVETICA;
@@ -59,6 +58,8 @@ public class SubmittalProcessing {
     private static ArrayList<Integer> subIndexPages = new ArrayList<>();
     private static ArrayList<IndexPageLayoutInfo> indexInfo = new ArrayList<>();
     private static IndexPageLayoutInfo mainIndexInfo;
+    private static PDFTextWriter textWriter = new PDFTextWriter();
+    private PageNumAppender appender = new PageNumAppender();
 
     public void processSubmittalContent() {
 
@@ -80,7 +81,7 @@ public class SubmittalProcessing {
                     mainIndexFirstPage = 3;
                 }
 
-                mainIndexInfo = new IndexPageLayoutInfo(null, mainIndexFirstPage, new ArrayList<>(), new ArrayList<>());
+                mainIndexInfo = new IndexPageLayoutInfo(1, mainIndexFirstPage, new ArrayList<>(), new ArrayList<>());
                 mainIndexInfo.getLocations().add(new ArrayList<>());
 
                 float pw = firstPage.getCropBox().getUpperRightX();
@@ -88,13 +89,8 @@ public class SubmittalProcessing {
 
                 float titleWidth = boldFont.getStringWidth("Contents") / 1000 * 36;
 
-                PDPageContentStream stream = new PDPageContentStream(mainPageDoc, mainPageDoc.getPage(0), true, true, true);
-                stream.beginText();
-                stream.setFont(boldFont, 36);
-                stream.newLineAtOffset((pw - titleWidth) / 2, ph - ph/12);
-                stream.showText("Contents");
-                stream.endText();
-                stream.close();
+                textWriter.writeText(mainPageDoc, mainPageDoc.getPage(0), boldFont, 36,
+                        (pw - titleWidth) / 2, ph - ph/12, "Contents");
 
                 float mainPageLoc = ph/12;
 
@@ -103,13 +99,10 @@ public class SubmittalProcessing {
                     mainPageLoc += 50;
                     mainIndexInfo.getLocations().get(mainIndexInfo.getLocations().size()-1).add(mainPageLoc);
 
-                    PDPageContentStream mainStream = new PDPageContentStream(mainPageDoc, mainPageDoc.getPage(mainPageDoc.getNumberOfPages()-1), true, true, true);
-                    mainStream.beginText();
-                    mainStream.setFont(boldFont, 24);
-                    mainStream.newLineAtOffset(pw/10, ph - mainPageLoc);
-                    mainStream.showText((i+1) + ") " + root.getChildren().get(i).getValue().getTitle());
-                    mainStream.endText();
-                    mainStream.close();
+                    TreeItem<PDFLineItem> currMain = root.getChildren().get(i);
+
+                    textWriter.writeText(mainPageDoc, mainPageDoc.getPage(mainPageDoc.getNumberOfPages()-1), boldFont, 24,
+                            pw/10, ph - mainPageLoc, (i+1) + ") " + currMain.getValue().getTitle());
 
                     for(int j = 0; j < root.getChildren().get(i).getChildren().size(); j++) {
 
@@ -122,37 +115,24 @@ public class SubmittalProcessing {
 
                         if(mainPageLoc <= ph - 60) {
                             mainIndexInfo.getLocations().get(mainIndexInfo.getLocations().size()-1).add(mainPageLoc);
-                            PDPageContentStream subStream = new PDPageContentStream(mainPageDoc, mainPageDoc.getPage(mainPageDoc.getNumberOfPages() - 1), true, true, true);
-                            subStream.beginText();
-                            subStream.setFont(font, 14);
-                            subStream.newLineAtOffset(pw / 6, ph - mainPageLoc);
-                            subStream.showText(root.getChildren().get(i).getChildren().get(j).getValue().getTitle());
-                            subStream.endText();
-                            subStream.close();
+                            textWriter.writeText(mainPageDoc, mainPageDoc.getPage(mainPageDoc.getNumberOfPages()-1), font, 14,
+                                    pw/6, ph - mainPageLoc, currMain.getChildren().get(j).getValue().getTitle());
+
                         } else {
                             mainPageLoc = 60;
                             mainIndexInfo.getLocations().add(new ArrayList<>());
-                            mainIndexInfo.getLocations().get(mainIndexInfo.getLocations().size()-1).add(mainPageLoc);
+                            //mainIndexInfo.getLocations().get(mainIndexInfo.getLocations().size()-1).add(mainPageLoc);
 
                             mainPageDoc.addPage(new PDPage());
-                            PDPageContentStream mainContinueStream = new PDPageContentStream(mainPageDoc, mainPageDoc.getPage(mainPageDoc.getNumberOfPages() - 1), true, true, true);
-                            mainContinueStream.beginText();
-                            mainContinueStream.setFont(boldFont, 24);
-                            mainContinueStream.newLineAtOffset(pw / 10, ph - mainPageLoc);
-                            mainContinueStream.showText((i+1) + ") " + root.getChildren().get(i).getValue().getTitle() + " (cont…)");
-                            mainContinueStream.endText();
-                            mainContinueStream.close();
+                            textWriter.writeText(mainPageDoc, mainPageDoc.getPage(mainPageDoc.getNumberOfPages()-1), boldFont, 24,
+                                    pw/10, ph - mainPageLoc, (i+1) + ") " + currMain.getValue().getTitle() + " (cont…)");
 
                             mainPageLoc += 40;
                             mainIndexInfo.getLocations().get(mainIndexInfo.getLocations().size()-1).add(mainPageLoc);
 
-                            PDPageContentStream subStream = new PDPageContentStream(mainPageDoc, mainPageDoc.getPage(mainPageDoc.getNumberOfPages() - 1), true, true, true);
-                            subStream.beginText();
-                            subStream.setFont(font, 14);
-                            subStream.newLineAtOffset(pw / 6, ph - mainPageLoc);
-                            subStream.showText(root.getChildren().get(i).getChildren().get(j).getValue().getTitle());
-                            subStream.endText();
-                            subStream.close();
+                            textWriter.writeText(mainPageDoc,
+                                    mainPageDoc.getPage(mainPageDoc.getNumberOfPages()-1), font, 14,
+                                    pw/6, ph - mainPageLoc, currMain.getChildren().get(j).getValue().getTitle());
                         }
                     }
                 }
@@ -174,6 +154,8 @@ public class SubmittalProcessing {
                     }
                     doc.close();
                 }
+
+                System.out.println("Hello?");
 
                 mainPageDoc.close();
             } catch(IOException e) {
@@ -199,14 +181,13 @@ public class SubmittalProcessing {
                 }
             }
             submittalSections.add(sectionList);
-            submittalSectionsFile.add(sectionListFile);
         }
 
         for(PDFLineItem pdfLineItem : contentList) {
 
             if(pdfLineItem.getTier() == 1) {
 
-                IndexPageLayoutInfo indexPageLayoutInfo = new IndexPageLayoutInfo(null, null, new ArrayList<>(), new ArrayList());
+                IndexPageLayoutInfo indexPageLayoutInfo = new IndexPageLayoutInfo(1, null, new ArrayList<>(), new ArrayList());
                 indexInfo.add(indexPageLayoutInfo);
             }
         }
@@ -214,7 +195,7 @@ public class SubmittalProcessing {
         try {
             traverseOutline(root, 0, null, -1);
         } catch(IOException mainIndexIO) {
-            System.err.println("IO Exception for mainIndexDoc");
+            System.err.println(mainIndexIO.getMessage());
         }
 
         mergePages(submittalSections);
@@ -224,12 +205,44 @@ public class SubmittalProcessing {
             setBoookmarks(completeDoc);
             completeDoc.close();
         }catch(IOException e) {
-            System.err.println("IO Error in bookmarking");
+            System.err.println(e.getMessage());
         }
 
         try {
             PDDocument completeDoc = PDDocument.load(new File("temp\\mergedSubmittal.pdf"));
             completeDoc.getDocumentCatalog().setPageMode(PageMode.USE_OUTLINES);
+
+
+            PDOutlineItem rootBookmark = completeDoc.getDocumentCatalog().getDocumentOutline().getFirstChild();
+
+            int i = 0;
+
+            for(PDOutlineItem outItem : rootBookmark.children()) {
+
+                if(!outItem.getTitle().equals("Main Contents")) {
+
+                    PDPageDestination pd = (PDPageDestination) outItem.getDestination();
+
+                    indexInfo.get(i).setPages(subIndexPages.get(i));
+
+                    indexInfo.get(i).setFirstPageNum(pd.retrievePageNumber() + 1);
+
+                    i++;
+                }
+
+            }
+
+            if(!removeMainContents) {
+                appender.appendIndexPageNums(completeDoc, mainIndexInfo, font, 12);
+            }
+
+
+            for(IndexPageLayoutInfo layoutInfo : indexInfo) {
+
+                appender.appendIndexPageNums(completeDoc, layoutInfo, font, 12);
+            }
+
+
 
             if(operationAndMain) {
                 File path = new File("Saves\\" + job + "\\Operation & Maintenance");
@@ -247,203 +260,10 @@ public class SubmittalProcessing {
                 }
             }
 
+
             if(pageNumbers) {
-                for (int i = 0; i < completeDoc.getPages().getCount(); i++) {
 
-                    PDPage page = completeDoc.getPages().get(i);
-
-                    float pw = page.getCropBox().getUpperRightX();
-                    float ph = page.getCropBox().getUpperRightY();
-
-                    PDPageContentStream pageNumberBackground = new PDPageContentStream(completeDoc, page, true, false, true);
-                    if (red != null) {
-                        pageNumberBackground.setNonStrokingColor(red, green, blue);
-                    } else {
-                        pageNumberBackground.setNonStrokingColor(Color.YELLOW);
-                    }
-                    if (page.getRotation() == 90) {
-                        pageNumberBackground.addRect(pw - 20, ph - 25, 20, 30);
-                    } else {
-                        pageNumberBackground.addRect(pw - 25, 0, 50, 20);
-                    }
-                    pageNumberBackground.fill();
-                    pageNumberBackground.close();
-
-
-                    PDPageContentStream pageNum = new PDPageContentStream(completeDoc, page, true, false, true);
-                    pageNum.beginText();
-                    pageNum.setFont(boldFont, 12);
-                    if(page.getRotation() == 90) {
-                        if (i < 9) {
-                            pageNum.setTextMatrix(Matrix.getRotateInstance(1.5708, pw - 6, ph - 12));
-                        } else if (i < 99) {
-                            pageNum.setTextMatrix(Matrix.getRotateInstance(1.5708, pw - 6, ph - 18));
-                        } else {
-                            pageNum.setTextMatrix(Matrix.getRotateInstance(1.5708, pw - 6, ph - 22));
-                        }
-                    } else {
-                        if (i < 9) {
-                            pageNum.newLineAtOffset(pw - 16, 6);
-                        } else if (i < 99) {
-                            pageNum.newLineAtOffset(pw - 19, 6);
-                        } else {
-                            pageNum.newLineAtOffset(pw - 23, 6);
-                        }
-                    }
-                    pageNum.showText("" + (i + 1));
-                    pageNum.endText();
-                    pageNum.close();
-
-
-                }
-
-                /*
-                ArrayList<String> pageNumList = new ArrayList<String>();
-
-                PDOutlineItem node = completeDoc.getDocumentCatalog().getDocumentOutline().getFirstChild();
-
-                for(PDOutlineItem mainChild : node.children()) {
-
-                    for(PDOutlineItem subChild : mainChild.children()) {
-
-                        for(PDOutlineItem itemChild : subChild.children()) {
-
-                            PDPageDestination pd = (PDPageDestination) itemChild.getDestination();
-                            pageNumList.add("" + (pd.retrievePageNumber() + 1));
-                        }
-                    }
-                }
-
-                for (String num : pageNumList) {
-                    searchReplace("```", num, false, completeDoc);
-                }
-
-                 */
-
-                PDOutlineItem rootBookmark = completeDoc.getDocumentCatalog().getDocumentOutline().getFirstChild();
-
-                int i = 0;
-
-                for(PDOutlineItem outItem : rootBookmark.children()) {
-
-                    if(!outItem.getTitle().equals("Main Contents")) {
-
-                        PDPageDestination pd = (PDPageDestination) outItem.getDestination();
-
-                        indexInfo.get(i).setPages(subIndexPages.get(i));
-
-                        indexInfo.get(i).setFirstPageNum(pd.retrievePageNumber() + 1);
-
-                        i++;
-                    }
-
-                }
-
-                int continuousLocCount = 0;
-
-                for(int k = 0; k < mainIndexInfo.getPages(); k++) {
-
-                    PDPage currentPage = completeDoc.getPage((mainIndexInfo.getFirstPageNum() + k) - 1);
-
-                    float pw = currentPage.getCropBox().getUpperRightX();
-                    float ph = currentPage.getCropBox().getUpperRightY();
-
-                    System.out.println("size " + mainIndexInfo.getLocations().get(k).size());
-
-                    for(int l = 0; l < mainIndexInfo.getLocations().get(k).size(); l++) {
-
-                        if(continuousLocCount == 29) {
-                            continuousLocCount = 28;
-                        }
-
-                        PDPageContentStream stream = new PDPageContentStream(completeDoc, currentPage, true, true, true);
-                        stream.beginText();
-                        stream.setFont(font, 12);
-                        stream.newLineAtOffset( (pw - 60), ph - mainIndexInfo.getLocations().get(k).get(l));
-                        stream.showText("Pg " + mainIndexInfo.getDocPages().get(continuousLocCount));
-                        stream.endText();
-                        stream.close();
-
-                        PDPageFitWidthDestination pageDestination = new PDPageFitWidthDestination();
-                        pageDestination.setPage(completeDoc.getPage(mainIndexInfo.getDocPages().get(continuousLocCount) - 1));
-                        PDActionGoTo action = new PDActionGoTo();
-                        action.setDestination(pageDestination);
-
-                        PDBorderStyleDictionary dictionary = new PDBorderStyleDictionary();
-                        dictionary.setStyle(PDBorderStyleDictionary.STYLE_UNDERLINE);
-                        dictionary.setWidth(0);
-
-                        PDAnnotationLink annotationLink = new PDAnnotationLink();
-                        annotationLink.setAction(action);
-                        annotationLink.setBorderStyle(dictionary);
-
-                        PDRectangle position = new PDRectangle();
-                        position.setLowerLeftX(pw/6);
-                        position.setLowerLeftY(ph - (mainIndexInfo.getLocations().get(k).get(l) + 4));
-                        position.setUpperRightX(pw - pw/25);
-                        position.setUpperRightY(ph - (mainIndexInfo.getLocations().get(k).get(l) - 13));
-
-                        annotationLink.setRectangle(position);
-
-                        currentPage.getAnnotations().add(annotationLink);
-
-                        continuousLocCount++;
-                    }
-
-                }
-
-                for(int j = 0; j < indexInfo.size(); j++) {
-
-                    continuousLocCount = 0;
-
-                    for(int k = 0; k < indexInfo.get(j).getPages(); k++) {
-
-                        PDPage currentPage = completeDoc.getPage((indexInfo.get(j).getFirstPageNum() + k) - 1);
-                        System.out.println((indexInfo.get(j).getFirstPageNum() + k) - 1);
-
-                        float pw = currentPage.getCropBox().getUpperRightX();
-                        float ph = currentPage.getCropBox().getUpperRightY();
-
-                        for(int l = 0; l < indexInfo.get(j).getLocations().get(k).size(); l++) {
-
-                            PDPageContentStream stream = new PDPageContentStream(completeDoc, currentPage, true, true, true);
-                            stream.beginText();
-                            stream.setFont(font, 12);
-                            stream.newLineAtOffset( (pw - 60), ph - indexInfo.get(j).getLocations().get(k).get(l));
-                            stream.showText("Pg " + indexInfo.get(j).getDocPages().get(continuousLocCount));
-                            stream.endText();
-                            stream.close();
-
-                            PDPageFitWidthDestination pageDestination = new PDPageFitWidthDestination();
-                            pageDestination.setPage(completeDoc.getPage(indexInfo.get(j).getDocPages().get(continuousLocCount) - 1));
-                            PDActionGoTo action = new PDActionGoTo();
-                            action.setDestination(pageDestination);
-
-                            PDBorderStyleDictionary dictionary = new PDBorderStyleDictionary();
-                            dictionary.setStyle(PDBorderStyleDictionary.STYLE_UNDERLINE);
-                            dictionary.setWidth(0);
-
-                            PDAnnotationLink annotationLink = new PDAnnotationLink();
-                            annotationLink.setAction(action);
-                            annotationLink.setBorderStyle(dictionary);
-
-                            PDRectangle position = new PDRectangle();
-                            position.setLowerLeftX(pw/6);
-                            position.setLowerLeftY(ph - (indexInfo.get(j).getLocations().get(k).get(l) + 4));
-                            position.setUpperRightX(pw - pw/25);
-                            position.setUpperRightY(ph - (indexInfo.get(j).getLocations().get(k).get(l) - 13));
-
-                            annotationLink.setRectangle(position);
-
-                            currentPage.getAnnotations().add(annotationLink);
-
-                            continuousLocCount++;
-                        }
-
-                    }
-                }
-
-
+                appender.appendPageNums(completeDoc, font, 12);
 
                 if(operationAndMain) {
                         File path = new File("Saves\\" + job + "\\Operation & Maintenance");
@@ -486,15 +306,11 @@ public class SubmittalProcessing {
             PDPage page = sectionContents.getPage(0);
             float pw = page.getCropBox().getUpperRightX();
             float ph = page.getCropBox().getUpperRightY();
-
-            PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
-            stream.beginText();
-            stream.setFont(boldFont, 20);
             pageLoc += 80;
-            stream.newLineAtOffset(pw/10, ph - pageLoc);
-            stream.showText((node.getParent().getChildren().indexOf(node)+1) + ") " + node.getValue().getTitle());
-            stream.endText();
-            stream.close();
+
+            textWriter.writeText(sectionContents, page, boldFont, 20,
+                    pw/10, ph - pageLoc, (node.getParent().getChildren().indexOf(node)+1) + ") " + node.getValue().getTitle());
+
 
         } else if(level == 2) {
 
@@ -504,79 +320,61 @@ public class SubmittalProcessing {
 
             pageLoc += 50;
             if(pageLoc <= ph - 80) {
-                PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
-                stream.beginText();
-                stream.setFont(boldFont, 16);
-                stream.newLineAtOffset(pw / 8, ph - pageLoc);
-                if((pageLoc+40) + ((node.getChildren().size()-1)*20) > ph-40) {
-                    stream.showText(node.getValue().getTitle()/* + " (cont…)"*/);
-                } else {
-                    stream.showText(node.getValue().getTitle());
-                }
-                stream.endText();
-                stream.close();
+
+                textWriter.writeText(sectionContents, page, boldFont, 16,
+                        pw/8, ph - pageLoc, node.getValue().getTitle());
+
+
             } else {
                 pageLoc = 60;
                 sectionContents.addPage(new PDPage());
                 subIndexPages.set(subIndexPages.size()-1, subIndexPages.get(subIndexPages.size()-1)+1);
                 page = sectionContents.getPage(sectionContents.getNumberOfPages()-1);
-                PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
-                stream.beginText();
-                stream.setFont(boldFont, 16);
-                stream.newLineAtOffset(pw / 8, ph - pageLoc);
-                stream.showText(node.getValue().getTitle());
-                stream.endText();
-                stream.close();
+
+                textWriter.writeText(sectionContents, page, boldFont, 16,
+                        pw/8, ph - pageLoc, node.getValue().getTitle());
+
             }
 
         } else if(level == 3) {
 
-            System.out.println("Number of main is now " + numMainContentsCompleted);
-
             PDPage page = sectionContents.getPage(sectionContents.getNumberOfPages()-1);
             indexInfo.get(numMainContentsCompleted).getLocations().add(new ArrayList());
-            //indexInfo.get(numMainContentsCompleted).getDocPages().add(new ArrayList());
+
             float pw = page.getCropBox().getUpperRightX();
             float ph = page.getCropBox().getUpperRightY();
             String subFileName = node.getValue().getTitle();
             pageLoc += 20;
             if(pageLoc <= ph - 60) {
-                PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
-                stream.beginText();
-                stream.setFont(font, 14);
+
                 if (node.getParent().getChildren().indexOf(node) == 0) {
                     pageLoc += 20;
-                    stream.newLineAtOffset((float)(pw / 5.5), ph - pageLoc);
-                } else {
-                    stream.newLineAtOffset((float)(pw / 5.5), ph - pageLoc);
                 }
+
+                textWriter.writeText(sectionContents, page, font, 14,
+                        (float)(pw / 5.5), ph - pageLoc, subFileName);
+
+
                 indexInfo.get(numMainContentsCompleted).getLocations().get(sectionContents.getNumberOfPages()-1).add(pageLoc);
-                stream.showText(subFileName);
-                stream.endText();
-                stream.close();
             } else {
                 pageLoc = 60;
                 sectionContents.addPage(new PDPage());
                 indexInfo.get(numMainContentsCompleted).getLocations().add(new ArrayList());
-                //indexInfo.get(numMainContentsCompleted).getDocPages().add(new ArrayList());
+
                 subIndexPages.set(subIndexPages.size()-1, subIndexPages.get(subIndexPages.size()-1)+1);
                 page = sectionContents.getPage(sectionContents.getNumberOfPages()-1);
-                PDPageContentStream stream = new PDPageContentStream(sectionContents, page, true, true, true);
-                stream.beginText();
-                stream.setFont(boldFont, 16);
-                stream.newLineAtOffset((float)(pw / 8), ph - pageLoc);
-                stream.showText(node.getParent().getValue().getTitle() + " (cont…)");
-                stream.endText();
+
+                textWriter.writeText(sectionContents, page, boldFont, 16,
+                        pw / 8, ph - pageLoc, node.getParent().getValue().getTitle() + " (cont…)");
+
 
                 pageLoc += 40;
 
-                stream.beginText();
-                stream.setFont(font, 14);
-                stream.newLineAtOffset((float)(pw / 5.5), ph - pageLoc);
+                textWriter.writeText(sectionContents, page, font, 14,
+                        (float)(pw / 5.5), ph - pageLoc, subFileName);
+
+
                 indexInfo.get(numMainContentsCompleted).getLocations().get(sectionContents.getNumberOfPages()-1).add(pageLoc);
-                stream.showText(subFileName);
-                stream.endText();
-                stream.close();
             }
 
 
@@ -603,7 +401,7 @@ public class SubmittalProcessing {
 
                             } else {
                                 if (node.getParent().getParent().getValue().getTitle().contains("Fixtures")) {
-                                    header = node.getParent().getParent().getValue().getTitle() + "  /  " + subFileName;
+                                    header = node.getParent().getParent().getValue().getTitle() + "  /  "  + node.getParent().getValue().getTitle() + "  /  " + subFileName;
                                 } else {
                                     header = node.getParent().getParent().getValue().getTitle() + "  /  " + node.getParent().getValue().getTitle();
                                 }
@@ -721,8 +519,6 @@ public class SubmittalProcessing {
 
     private static void mergePages(ArrayList<ArrayList<PDDocument>> submittalSectionList) {
 
-
-
         try {
             PDFMergerUtility pdfMerger = new PDFMergerUtility();
             pdfMerger.setDestinationFileName("temp\\mergedSubmittal.pdf");
@@ -748,6 +544,7 @@ public class SubmittalProcessing {
             System.err.println(e.getMessage());
         }
     }
+
 
     private static void setBoookmarks(PDDocument completeDoc) {
 
@@ -790,7 +587,9 @@ public class SubmittalProcessing {
             sectionIndexItem.setDestination(sectionDest);
             PDroot.addLast(sectionIndexItem);
             sectionIndexItem.openNode();
-            mainIndexInfo.getDocPages().add(currentPage+1);
+            if(!removeMainContents) {
+                mainIndexInfo.getDocPages().add(currentPage + 1);
+            }
             currentPage += subIndexPages.get(i);
 
             for(int j = 0; j < root.getChildren().get(i).getChildren().size(); j++) {
@@ -803,7 +602,9 @@ public class SubmittalProcessing {
                 subItem.setTitle(root.getChildren().get(i).getChildren().get(j).getValue().getTitle());
                 subItem.setDestination(subDest);
                 sectionIndexItem.addLast(subItem);
-                mainIndexInfo.getDocPages().add(currentPage+1);
+                if(!removeMainContents) {
+                    mainIndexInfo.getDocPages().add(currentPage + 1);
+                }
 
                 for(int k = 0; k < root.getChildren().get(i).getChildren().get(j).getChildren().size(); k++) {
 
@@ -835,64 +636,4 @@ public class SubmittalProcessing {
         }
 
     }
-
-    private static void searchReplace (String search, String replace, boolean replaceAll, PDDocument doc) throws IOException {
-
-        PDPageTree pages = doc.getDocumentCatalog().getPages();
-
-        for (PDPage page : pages) {
-            if(page.getMetadata() != null) {
-                PDFStreamParser parser = new PDFStreamParser(page);
-                parser.parse();
-                List tokens = parser.getTokens();
-                for (int j = 0; j < tokens.size(); j++) {
-                    Object next = tokens.get(j);
-                    if (next instanceof Operator) {
-                        Operator op = (Operator) next;
-                        // Tj and TJ are the two operators that display strings in a PDF
-                        // Tj takes one operator and that is the string to display so lets update that operator
-                        if (op.getName().equals("Tj")) {
-                            COSString previous = (COSString) tokens.get(j - 1);
-                            System.out.println(previous);
-                            String string = previous.getString();
-                            if (replaceAll) {
-                                string = string.replaceAll(search, replace);
-                            } else {
-                                string = string.replaceFirst(search, replace);
-                            }
-                            previous.setValue(string.getBytes());
-                        } else if (op.getName().equals("TJ")) {
-                            COSArray previous = (COSArray) tokens.get(j - 1);
-                            for (int k = 0; k < previous.size(); k++) {
-                                Object arrElement = previous.getObject(k);
-                                if (arrElement instanceof COSString) {
-                                    COSString cosString = (COSString) arrElement;
-                                    String string = cosString.getString();
-
-                                    if (replaceAll) {
-                                        string = string.replaceAll(search, replace);
-                                    } else {
-                                        string = string.replaceFirst(search, replace);
-
-                                    }
-
-                                    cosString.setValue(string.getBytes());
-                                }
-                            }
-                        }
-                    }
-                }
-                // now that the tokens are updated we will replace the page content stream.
-                PDStream updatedStream = new PDStream(doc);
-                OutputStream out = updatedStream.createOutputStream();
-                ContentStreamWriter tokenWriter = new ContentStreamWriter(out);
-                tokenWriter.writeTokens(tokens);
-                out.close();
-                page.setContents(updatedStream);
-            }
-
-        }
-    }
-
-
 }

@@ -6,6 +6,7 @@ import javafx.scene.control.TreeItem;
 
 import java.io.*;
 import java.util.ArrayList;
+import java.util.List;
 
 import static Windows.OutlineWindow.getRoot;
 import static Windows.OutlineWindow.getTreeView;
@@ -19,15 +20,15 @@ public class AutoSave extends ProjectInfoWindow{
      *  from the project folder.
      */
 
-    public static String[] loadProjectInfo(File file) {
+    public static List<List<String>> loadProjectInfo(File file) {
 
-        String[] savedInfo = new String[23];
+        List<List<String>> savedInfo = new ArrayList<>();
 
         try {
             if(file.exists()) {
                 FileInputStream fis = new FileInputStream(file);
                 ObjectInputStream ois = new ObjectInputStream(fis);
-                savedInfo = (String[]) ois.readObject();
+                savedInfo = (List<List<String>>) ois.readObject();
                 ois.close();
             }
 
@@ -89,6 +90,7 @@ public class AutoSave extends ProjectInfoWindow{
      *  Method used to load a default image.
      */
 
+    /*
     public static String loadDefaultimage() {
 
         try {
@@ -111,6 +113,8 @@ public class AutoSave extends ProjectInfoWindow{
         }
         return "";
     }
+
+     */
 
 
     /*---------------------------------------------------------------------------
@@ -139,7 +143,7 @@ public class AutoSave extends ProjectInfoWindow{
      *  in project folder of whatever text was in the fields at the time.
      */
 
-    public static void saveProjectInfo(String[] savedInfo) {
+    public static void saveProjectInfo(List<List<String>> savedInfo) {
 
 
         try {
@@ -314,5 +318,139 @@ public class AutoSave extends ProjectInfoWindow{
         } catch (IOException mainSave) {
             mainSave.printStackTrace();
         }
+    }
+
+
+    public static void saveProfile(List<String> profileInfo) {
+
+
+        try {
+            FileOutputStream fos;
+            fos = new FileOutputStream("Profiles.ser");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(profileInfo);
+            oos.close();
+
+        } catch (FileNotFoundException savedInfoE) {
+            savedInfoE.printStackTrace();
+        } catch (IOException savedInfoE) {
+            savedInfoE.printStackTrace();
+        }
+    }
+
+
+    public static void saveMember(List<Member> memberInfo) {
+
+
+        try {
+            FileOutputStream fos;
+            fos = new FileOutputStream("Members.ser");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(memberInfo);
+            oos.close();
+
+        } catch (FileNotFoundException savedInfoE) {
+            savedInfoE.printStackTrace();
+        } catch (IOException savedInfoE) {
+            savedInfoE.printStackTrace();
+        }
+    }
+
+    public static void saveContact(List<List<String>> contactInfo) {
+
+
+        try {
+            FileOutputStream fos;
+            fos = new FileOutputStream("Contacts.ser");
+            ObjectOutputStream oos = new ObjectOutputStream(fos);
+            oos.writeObject(contactInfo);
+            oos.close();
+
+        } catch (FileNotFoundException savedInfoE) {
+            savedInfoE.printStackTrace();
+        } catch (IOException savedInfoE) {
+            savedInfoE.printStackTrace();
+        }
+    }
+
+
+    public static List<String> loadProfile() {
+
+
+        try {
+            File profileInfo = new File("Profiles.ser");
+            FileInputStream fis;
+            fis = new FileInputStream(profileInfo);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            List<String> profileInfoList = new ArrayList<>();
+            profileInfoList = (List<String>) ois.readObject();
+            ois.close();
+
+            return profileInfoList;
+
+        } catch (FileNotFoundException savedInfoE) {
+            savedInfoE.getMessage();
+        } catch (ClassNotFoundException savedInfoE) {
+            savedInfoE.getMessage();
+        } catch (IOException ioException) {
+            ioException.getMessage();
+        }
+
+        return null;
+    }
+
+
+    public static List<Member> loadMemberList() {
+
+
+        try {
+            File memberInfo = new File("Members.ser");
+            FileInputStream fis;
+            fis = new FileInputStream(memberInfo);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            List<Member> memberInfoList;
+            memberInfoList = (List<Member>) ois.readObject();
+            ois.close();
+
+            return memberInfoList;
+
+        } catch (FileNotFoundException savedInfoE) {
+            savedInfoE.getMessage();
+        } catch (ClassNotFoundException savedInfoE) {
+            savedInfoE.getMessage();
+        } catch (IOException ioException) {
+            ioException.getMessage();
+        }
+
+        return null;
+    }
+
+
+    public static List<List<String>> loadContactList() {
+
+
+        try {
+            File contactInfo = new File("Contacts.ser");
+            FileInputStream fis;
+            fis = new FileInputStream(contactInfo);
+            ObjectInputStream ois = new ObjectInputStream(fis);
+
+            List<List<String>> contactInfoList = new ArrayList<>();
+            contactInfoList = (List<List<String>>) ois.readObject();
+            ois.close();
+
+            return contactInfoList;
+
+        } catch (FileNotFoundException savedInfoE) {
+            savedInfoE.getMessage();
+        } catch (ClassNotFoundException savedInfoE) {
+            savedInfoE.getMessage();
+        } catch (IOException ioException) {
+            ioException.getMessage();
+        }
+
+        return null;
     }
 }

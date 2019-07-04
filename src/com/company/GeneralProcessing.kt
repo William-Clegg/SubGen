@@ -1,28 +1,19 @@
 package com.company
 
+import Windows.SelectMembersWindow.chosenMembers
 import Windows.ProjectInfoWindow.*
-import org.apache.pdfbox.contentstream.PDContentStream
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.pdmodel.PDPage
 import org.apache.pdfbox.pdmodel.PDPageContentStream
 import org.apache.pdfbox.pdmodel.font.PDType1Font
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject
-import org.apache.poi.util.Units
-import org.apache.poi.xwpf.usermodel.*
-import org.apache.xmlbeans.XmlObject
-import java.io.File
-import java.io.FileInputStream
-import java.math.BigInteger
 import javax.imageio.ImageIO
-import  org.openxmlformats.schemas.wordprocessingml.x2006.main.CTR;
-import java.io.FileOutputStream
-import org.apache.poi.xwpf.usermodel.XWPFRun
-import org.apache.poi.xwpf.usermodel.XWPFParagraph
+import java.io.*
 
 class GeneralProcessing {
 
-    //private var coverPageDoc = XWPFDocument(FileInputStream("CoverPage.docx"))
     private var coverPageDoc = PDDocument()
+    private var memberPageDoc = PDDocument()
 
     fun createSubmittal() {
 
@@ -31,16 +22,21 @@ class GeneralProcessing {
         val page = coverPageDoc.getPage(0)
         val pw = page.mediaBox.upperRightX
         val ph = page.mediaBox.upperRightY
-        val font = PDType1Font.HELVETICA_BOLD
+        val font = PDType1Font.HELVETICA
+        val boldFont = PDType1Font.HELVETICA_BOLD
         val pdImage = PDImageXObject.createFromFile(imgPath, coverPageDoc)
-        val contentStream = PDPageContentStream(coverPageDoc, page, PDPageContentStream.AppendMode.APPEND, false)
         val bimg = ImageIO.read(File(imgPath))
         val height = bimg.height.toDouble()
         val width = bimg.width
         val adjustment = 210 / height
+        val textWriter = PDFTextWriter()
         println("height " + height + " width " + width + "  " + imgPath)
+
+        val contentStream = PDPageContentStream(coverPageDoc, page, PDPageContentStream.AppendMode.APPEND, false)
         contentStream.drawImage(pdImage, pw/11, (ph/1.5).toFloat(), (width*adjustment).toFloat(),210.toFloat())
-        var docType : String = ""
+        contentStream.close()
+
+        lateinit var docType : String
 
         if(operationAndMain) {
             docType = "Operation and Maintenance Manual"
@@ -48,21 +44,13 @@ class GeneralProcessing {
             docType ="Plumbing Submittal"
         }
 
-        var textLength = font.getStringWidth(docType) / 1000 * 32
-        contentStream.beginText()
-        contentStream.setFont(font, 32.toFloat())
-        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/1.8).toFloat())
-        contentStream.showText(docType)
-        contentStream.endText()
+        var textLength =boldFont.getStringWidth(docType) / 1000 * 32
+        textWriter.writeText(coverPageDoc, page,boldFont, 32, (pw/2)-(textLength/2), (ph/1.8).toFloat(), docType)
 
-        textLength = font.getStringWidth("For") / 1000 * 26
-        contentStream.beginText()
-        contentStream.setFont(font, 26.toFloat())
-        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/2.1).toFloat())
-        contentStream.showText("For")
-        contentStream.endText()
+        textLength =boldFont.getStringWidth("For") / 1000 * 26
+        textWriter.writeText(coverPageDoc, page,boldFont, 26, (pw/2)-(textLength/2), (ph/2.1).toFloat(), "For")
 
-        textLength = font.getStringWidth(job) / 1000 * 48
+        textLength =boldFont.getStringWidth(job) / 1000 * 48
         val longText = textLength > (pw - 150)
         if(longText) {
             val jobChars = job.toCharArray()
@@ -84,78 +72,221 @@ class GeneralProcessing {
             }
             val job1 = job.substring(0, middleSpace)
             val job2 = job.substring(middleSpace+1)
-            val length1 = font.getStringWidth(job1) / 1000 * 48
-            val length2 = font.getStringWidth(job2) / 1000 * 48
-            contentStream.beginText()
-            contentStream.setFont(font, 48.toFloat())
-            contentStream.newLineAtOffset((pw / 2) - (length1/2), (ph / 2.6).toFloat())
-            contentStream.showText(job1)
-            contentStream.endText()
+            val length1 =boldFont.getStringWidth(job1) / 1000 * 48
+            val length2 =boldFont.getStringWidth(job2) / 1000 * 48
+            textWriter.writeText(coverPageDoc, page,boldFont, 48, (pw / 2) - (length1/2),  (ph / 2.6).toFloat(), job1)
 
-            contentStream.beginText()
-            contentStream.setFont(font, 48.toFloat())
-            contentStream.newLineAtOffset((pw / 2) - (length2/2), (ph / 3.2).toFloat())
-            contentStream.showText(job2)
-            contentStream.endText()
+
+            textWriter.writeText(coverPageDoc, page,boldFont, 48, (pw / 2) - (length2/2),  (ph / 3.2).toFloat(), job2)
+
         } else {
-            contentStream.beginText()
-            contentStream.setFont(font, 48.toFloat())
-            contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 2.6).toFloat())
-            contentStream.showText(job)
-            contentStream.endText()
+            textWriter.writeText(coverPageDoc, page,boldFont, 48, (pw / 2) - (textLength / 2),  (ph / 2.6).toFloat(), job)
+
         }
 
         if(!volume.equals("")) {
-            textLength = font.getStringWidth(volume) / 1000 * 28
-            contentStream.beginText()
-            contentStream.setFont(font, 28.toFloat())
+            textLength =boldFont.getStringWidth(volume) / 1000 * 28
+
             if(!longText) {
-                contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 3.2).toFloat())
+                textWriter.writeText(coverPageDoc, page,boldFont, 28, (pw / 2) - (textLength / 2),  (ph / 3.2).toFloat(), volume)
             } else {
-                contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 4).toFloat())
+                textWriter.writeText(coverPageDoc, page,boldFont, 28, (pw / 2) - (textLength / 2),  (ph / 4), volume)
             }
-            contentStream.showText(volume)
-            contentStream.endText()
         }
 
         if(!date.equals("")) {
-            textLength = font.getStringWidth(date) / 1000 * 22
-            contentStream.beginText()
-            contentStream.setFont(font, 22.toFloat())
+            textLength =boldFont.getStringWidth(date) / 1000 * 22
+
             if(!longText) {
-                contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 3.8).toFloat())
+                textWriter. writeText(coverPageDoc, page,boldFont, 22, (pw / 2) - (textLength / 2),  (ph / 3.8).toFloat(), date)
             } else {
-                contentStream.newLineAtOffset((pw / 2) - (textLength / 2), (ph / 4.7).toFloat())
+                textWriter.writeText(coverPageDoc, page,boldFont, 22, (pw / 2) - (textLength / 2),  (ph / 4.7).toFloat(), date)
             }
-            contentStream.showText(date)
-            contentStream.endText()
         }
 
-        textLength = font.getStringWidth("Prepared By Stasco Mechanical") / 1000 * 24
-        contentStream.beginText()
-        contentStream.setFont(font, 24.toFloat())
-        contentStream.newLineAtOffset((pw/2)-(textLength/2), (ph/13))
-        contentStream.showText("Prepared By Stasco Mechanical")
-        contentStream.endText()
-        contentStream.close()
+        textLength = boldFont.getStringWidth("Prepared By Stasco Mechanical") / 1000 * 24
+        textWriter.writeText(coverPageDoc, page,boldFont, 24, (pw/2)-(textLength/2),  (ph/13), "Prepared By Stasco Mechanical")
+
 
         coverPageDoc.save("temp\\PictureDocument.pdf")
         coverPageDoc.close()
 
         if(!removeMembers) {
-            val generalInfoDoc = XWPFDocument()
-            val p3 = generalInfoDoc.createParagraph()
-            p3.alignment = ParagraphAlignment.CENTER
-            p3.verticalAlignment = TextAlignment.TOP
 
-            val r3 = p3.createRun()
-            r3.fontSize = 22
-            r3.ctr.insertNewBr(1)
-            r3.underline = UnderlinePatterns.SINGLE
-            r3.isBold = true
-            r3.setText("Plumbing Submittal")
-            r3.fontFamily = "Calibri (Body)"
+            var numMembers = 0;
 
+            chosenMembers.forEach {
+
+                if(it != null) {
+                    numMembers++
+                }
+            }
+
+            val memberPage = PDPage()
+            memberPageDoc.addPage(memberPage)
+
+            textWriter.writeText(memberPageDoc, memberPage,boldFont, 18, pw/2 - ((boldFont.getStringWidth(docType) / 1000 * 18)/2), ph - ph/12, "Project Members")
+
+            val pageLocations = ArrayList<Float>()
+
+            for(i in 9 downTo 0) {
+
+                if(chosenMembers.get(i) == null) {
+                    chosenMembers.removeAt(i)
+                }
+            }
+
+            when(numMembers) {
+                1 -> {
+                    pageLocations.add(ph/2)
+                }
+                2 -> {
+                    pageLocations.add(ph - ph / 3)
+                    pageLocations.add(ph / 3)
+                }
+                3 -> {
+                    pageLocations.add(ph - ph/4)
+                    pageLocations.add(ph/2)
+                    pageLocations.add(ph/4)
+                }
+                4 -> {
+                    pageLocations.add(ph - ph/5)
+                    pageLocations.add(ph - ph/2.5.toFloat())
+                    pageLocations.add(ph/2.5.toFloat())
+                    pageLocations.add(ph/5)
+                }
+                5 -> {
+                    pageLocations.add(ph - ph/6)
+                    pageLocations.add(ph - ph/4)
+                    pageLocations.add(ph/2)
+                    pageLocations.add(ph/4)
+                    pageLocations.add(ph/6)
+                }
+                6 -> {
+                    pageLocations.add(ph - ph/4)
+                    pageLocations.add(ph - ph/4)
+                    pageLocations.add(ph/2)
+                    pageLocations.add(ph/2)
+                    pageLocations.add(ph/4)
+                    pageLocations.add(ph/4)
+                }
+                7 -> {
+                    pageLocations.add(ph - ph/5)
+                    pageLocations.add(ph - ph/5)
+                    pageLocations.add(ph - ph/3)
+                    pageLocations.add(ph - ph/3)
+                    pageLocations.add(ph/3)
+                    pageLocations.add(ph/3)
+                    pageLocations.add(ph/5)
+                }
+                8 -> {
+                    pageLocations.add(ph - ph/5)
+                    pageLocations.add(ph - ph/5)
+                    pageLocations.add(ph - ph/3)
+                    pageLocations.add(ph - ph/3)
+                    pageLocations.add(ph/3)
+                    pageLocations.add(ph/3)
+                    pageLocations.add(ph/5)
+                    pageLocations.add(ph/5)
+                }
+                9 -> {
+                    pageLocations.add(ph - ph/6)
+                    pageLocations.add(ph - ph/6)
+                    pageLocations.add(ph - ph/4)
+                    pageLocations.add(ph - ph/4)
+                    pageLocations.add(ph/2)
+                    pageLocations.add(ph/2)
+                    pageLocations.add(ph/4)
+                    pageLocations.add(ph/4)
+                    pageLocations.add(ph/6)
+                }
+                10 -> {
+                    pageLocations.add(ph - ph/6)
+                    pageLocations.add(ph - ph/6)
+                    pageLocations.add(ph - ph/4)
+                    pageLocations.add(ph - ph/4)
+                    pageLocations.add(ph/2)
+                    pageLocations.add(ph/2)
+                    pageLocations.add(ph/4)
+                    pageLocations.add(ph/4)
+                    pageLocations.add(ph/6)
+                    pageLocations.add(ph/6)
+                }
+            }
+
+            if(pageLocations.size < 6) {
+
+                pageLocations.forEach {
+
+                    var pageLoc = 0.toFloat()
+
+                    /*
+
+                    textWriter.writeText(memberPageDoc, memberPage,boldFont, 14, pw/2.5.toFloat(), it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(0))
+                    pageLoc += 15
+                    textWriter.writeText(memberPageDoc, memberPage,font, 14, pw/2.5.toFloat(), it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(1))
+                    pageLoc += 15
+                    textWriter.writeText(memberPageDoc, memberPage,font, 14, pw/2.5.toFloat(), it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(2))
+                    pageLoc += 15
+                    textWriter.writeText(memberPageDoc, memberPage,font, 14, pw/2.5.toFloat(), it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(3))
+                    pageLoc += 15
+                    if(chosenMembers.get(pageLocations.indexOf(it)).size > 5 && !chosenMembers.get(pageLocations.indexOf(it)).get(5).equals("")) {
+                        textWriter.writeText(memberPageDoc, memberPage, font, 14, pw / 2.5.toFloat(), it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(5))
+                        pageLoc += 15
+                    }
+                    if(chosenMembers.get(pageLocations.indexOf(it)).size > 6 && !chosenMembers.get(pageLocations.indexOf(it)).get(6).equals("")) {
+                    textWriter.writeText(memberPageDoc, memberPage, font, 14, pw / 2.5.toFloat(), it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(6))
+                        pageLoc += 15
+                    }
+                    if(chosenMembers.get(pageLocations.indexOf(it)).size > 7 && !chosenMembers.get(pageLocations.indexOf(it)).get(7).equals("")) {
+                    textWriter.writeText(memberPageDoc, memberPage, font, 14, pw / 2.5.toFloat(), it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(7))
+                    }
+
+                     */
+                }
+            }
+
+            if(pageLocations.size > 5) {
+
+                val leftLocation = pw/4.toFloat()
+                val rightLocation = pw/1.5.toFloat()
+                var currentLocation = 0.toFloat()
+
+                pageLocations.forEach {
+
+                    if(pageLocations.indexOf(it).rem(2) == 1) {
+                        currentLocation = rightLocation
+                    } else {
+                        currentLocation = leftLocation
+                    }
+
+                    var pageLoc = 0.toFloat()
+
+                    /*
+                    textWriter.writeText(memberPageDoc, memberPage,boldFont, 14, currentLocation, it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(0))
+                    pageLoc += 15
+                    textWriter.writeText(memberPageDoc, memberPage,font, 14, currentLocation, it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(1))
+                    pageLoc += 15
+                    textWriter.writeText(memberPageDoc, memberPage,font, 14, currentLocation, it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(2))
+                    pageLoc += 15
+                    textWriter.writeText(memberPageDoc, memberPage,font, 14, currentLocation, it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(3))
+                    pageLoc += 15
+                    if(chosenMembers.get(pageLocations.indexOf(it)).size > 5 && !chosenMembers.get(pageLocations.indexOf(it)).get(5).equals("")) {
+                        textWriter.writeText(memberPageDoc, memberPage, font, 14, currentLocation, it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(5))
+                        pageLoc += 15
+                    }
+                    if(chosenMembers.get(pageLocations.indexOf(it)).size > 6 && !chosenMembers.get(pageLocations.indexOf(it)).get(6).equals("")) {
+                        textWriter.writeText(memberPageDoc, memberPage, font, 14, currentLocation, it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(6))
+                        pageLoc += 15
+                    }
+                    if(chosenMembers.get(pageLocations.indexOf(it)).size > 7 && !chosenMembers.get(pageLocations.indexOf(it)).get(7).equals("")) {
+                        textWriter.writeText(memberPageDoc, memberPage, font, 14, currentLocation, it - pageLoc, chosenMembers.get(pageLocations.indexOf(it)).get(7))
+                    }
+
+                     */
+                }
+            }
+/*
             val p4 = generalInfoDoc.createParagraph()
             p4.alignment = ParagraphAlignment.LEFT
             p4.indentationLeft = 4000
@@ -346,6 +477,11 @@ class GeneralProcessing {
             generalInfoDoc.createNumbering()
             generalInfoDoc.write((FileOutputStream("GeneralInfoPage.docx")))
             sp1.convertToPdf(generalInfoDoc, "genInfo")
+
+             */
+
+            memberPageDoc.save("temp\\genInfo.pdf")
+            memberPageDoc.close()
         }
 
         val submittalSheetProcessor = SubmittalProcessing()

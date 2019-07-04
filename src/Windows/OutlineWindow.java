@@ -27,7 +27,7 @@ public class OutlineWindow {
          */
 
         GridPane grid = new GridPane();
-        SubGenApp.scene1 = new Scene(grid, 700, 750);
+        SubGenApp.scene1 = new Scene(grid, 1200, 900);
         grid.setAlignment(Pos.CENTER);
 
         ColumnConstraints listCol = new ColumnConstraints();

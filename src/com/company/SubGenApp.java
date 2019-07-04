@@ -1,6 +1,7 @@
 package com.company;
 
 import Windows.ProjectInfoWindow;
+import Windows.CreateMembersWindow;
 import Windows.SettingsWindow;
 import Windows.SplitWindow;
 import javafx.application.Application;
@@ -10,12 +11,15 @@ import javafx.scene.image.Image;
 import javafx.scene.layout.*;
 import javafx.stage.Stage;
 import javax.imageio.ImageIO;
+import java.io.File;
 import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.List;
 import javax.imageio.*;
 
+import static Windows.SelectMembersWindow.memberGrid;
 import static Windows.OutlineWindow.outlineGrid;
+import static com.company.AutoSave.*;
 
 /*
 
@@ -35,13 +39,15 @@ FEATURES TO ADD LIST
 
  - Clean code, clean libraries, and implement an installer
 
+ - Header options
+
 */
 
 public class SubGenApp extends Application {
 
 
     public static Stage window;
-    public static Scene scene, scene1;
+    public static Scene scene, memberScene, scene1;
     public TabPane tabPane;
     public final static ImageWriter writer = ImageIO.getImageWritersByFormatName("jpg").next();
     GridPane grid;
@@ -53,9 +59,16 @@ public class SubGenApp extends Application {
 
     public static List<String> southernList = new ArrayList<>();
     public static List<Integer> southernListIndex = new ArrayList<>();
+    public static List<String> profileList = new ArrayList<>();
+    public static List<Member> memberList = new ArrayList<Member>();
+    //public static List<List<String>> contactList = new ArrayList<>();
 
     @Override
     public void start(Stage primaryStage) throws Exception {
+
+        if(new File("Profiles.ser").exists()) { profileList = loadProfile(); }
+        if(new File("Members.ser").exists()) { memberList = loadMemberList(); }
+        //if(new File("Contacts.ser").exists()) { contactList = loadContactList(); }
 
         System.setProperty("sun.java2d.cmm", "sun.java2d.cmm.kcms.KcmsServiceProvider");
         window = primaryStage;
@@ -71,21 +84,25 @@ public class SubGenApp extends Application {
         treeView.setCellFactory(param -> new CustomTreeCell());
         treeView.setEditable(true);
 
+        Tab settingsTab = new Tab();
+        settingsTab.setText("Settings");
+        settingsTab.setContent(settingsSample());
+
         Tab generalInformation = new Tab();
-        generalInformation.setText("General Information");
+        generalInformation.setText("Create Members");
         generalInformation.setContent(alignmentSample());
 
         Tab pdfSplit = new Tab();
         pdfSplit.setText("PDF Splitter");
         pdfSplit.setContent(splitSample());
 
-        tabPane.getTabs().addAll(projectInfo, generalInformation, pdfSplit);
+        tabPane.getTabs().addAll(projectInfo, generalInformation, pdfSplit, settingsTab);
 
         FileInputStream iconStream = new FileInputStream("C:\\Users\\Rudy\\IdeaProjects\\SubGen\\src\\SGblackLarge.png");
         window.getIcons().add(new Image(iconStream));
         window.setTitle("Submittal Generator");
 
-        scene = new Scene(tabPane, 900, 700);
+        scene = new Scene(tabPane, 1200, 900);
         primaryStage.setScene(scene);
 
         primaryStage.show();
@@ -97,6 +114,12 @@ public class SubGenApp extends Application {
         window.setScene(scene1);
     }
 
+    public static void createMemberScene() {
+
+        GridPane grid = memberGrid();
+        window.setScene(memberScene);
+    }
+
     private Pane sizingSample() {
 
         grid = ProjectInfoWindow.createGrid();
@@ -106,7 +129,7 @@ public class SubGenApp extends Application {
 
     private Pane alignmentSample() {
 
-        grid = SettingsWindow.createGrid();
+        grid = CreateMembersWindow.createGrid();
 
         return grid;
     }
@@ -114,6 +137,13 @@ public class SubGenApp extends Application {
     private Pane splitSample() {
 
         grid = SplitWindow.createGrid();
+
+        return grid;
+    }
+
+    private Pane settingsSample() {
+
+        grid = SettingsWindow.createGrid();
 
         return grid;
     }

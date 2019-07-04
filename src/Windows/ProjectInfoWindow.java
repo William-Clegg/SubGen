@@ -1,5 +1,6 @@
 package Windows;
 
+import com.company.AutoCompleteComboBoxListener;
 import com.company.SubGenApp;
 import javafx.beans.value.ChangeListener;
 import javafx.beans.value.ObservableValue;
@@ -23,20 +24,24 @@ import java.io.*;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.List;
 
 import static com.company.AutoSave.*;
 import static com.company.SubGenApp.*;
 
 public class ProjectInfoWindow {
 
-    public static String job, jobAdd1, jobAdd2, architectName, architectAdd1, architectAdd2, architectPhone,
+    public static String companyName, companyAdd1, companyAdd2, companyPhone, job, jobAdd1, jobAdd2, architectName, architectAdd1, architectAdd2, architectPhone,
             genConName, genConAdd1, genConAdd2, genConPhone, engineerName, engineerAdd1, engineerAdd2, engineerPhone,
             imgPath, date, volume, pageNumbersText, rgbText, removeMembersText, removeMainContentsText, operationAndMainText;
     public static boolean pageNumbers, removeMembers, removeMainContents, operationAndMain;
     public static TextField pnField, pAdd1, pAdd2, archNameField, aAdd1, aAdd2, archPhoneField, gcNameField, gAdd1, gAdd2, gcPhoneField;
     private static CheckBox dateCheck, volumeCheck, pageNumbersCheck, memberCheck, mainContentsCheck, operationAndMainCheck;
     public static Integer red, green, blue;
+    //private static List<String> observableProfileNameList = new ArrayList<>();
+    public static List<String> chosenProfile;
 
     public static GridPane createGrid() {
         GridPane grid = new GridPane();
@@ -45,28 +50,66 @@ public class ProjectInfoWindow {
         grid.setVgap(10);
         grid.setPadding(new Insets(25, 25, 25, 25));
 
-            Text scenetitle = new Text("Project Information");
-            scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
-            grid.add(scenetitle, 0, 0, 2, 1);
+        Text scenetitle = new Text("Project Information");
+        scenetitle.setFont(Font.font("Tahoma", FontWeight.NORMAL, 20));
+        grid.add(scenetitle, 0, 0, 2, 1);
 
-            Label projName = new Label("Project Name:");
-            grid.add(projName, 0, 1);
+        Label projName = new Label("Project Name:");
+        grid.add(projName, 0, 1);
 
-            final TextField pnField = new TextField();
-            grid.add(pnField, 1, 1);
+        final TextField pnField = new TextField();
+        grid.add(pnField, 1, 1);
 
-            Label projAdd1 = new Label("Project Address Part One:");
-            grid.add(projAdd1, 0, 2);
+        Label projAdd1 = new Label("Project Address Part One:");
+        grid.add(projAdd1, 0, 2);
 
-            final TextField pAdd1 = new TextField();
-            grid.add(pAdd1, 1, 2);
+        final TextField pAdd1 = new TextField();
+        grid.add(pAdd1, 1, 2);
 
-            Label projAdd2 = new Label("Project Address Part Two:");
-            grid.add(projAdd2, 0, 3);
+        Label projAdd2 = new Label("Project Address Part Two:");
+        grid.add(projAdd2, 0, 3);
 
-            final TextField pAdd2 = new TextField();
-            grid.add(pAdd2, 1, 3);
+        final TextField pAdd2 = new TextField();
+        grid.add(pAdd2, 1, 3);
 
+
+        /*
+        List<String> observableProfileNameList = new ArrayList<>();
+
+        Label chooseProfileBoxLabel = new Label("Choose Company Profile:");
+        for(List<String> list : profileList) {
+            observableProfileNameList.add(list.get(2));
+        }
+
+
+
+        ComboBox<String> chooseProfileBox = new ComboBox<>(FXCollections.observableArrayList(observableProfileNameList));
+        new AutoCompleteComboBoxListener<String>(chooseProfileBox);
+        chooseProfileBox.setMaxWidth(Double.POSITIVE_INFINITY);
+        grid.add(chooseProfileBox, 1, 4, 1, 1);
+        grid.add(chooseProfileBoxLabel, 0, 4);
+
+
+        chooseProfileBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+
+
+                if(newValue.intValue() == -1) {
+                    chosenProfile = null;
+                } else {
+                    chosenProfile = profileList.get(newValue.intValue());
+                }
+            }
+        });
+
+         */
+
+
+
+
+
+/*
             Label archName = new Label("Architect Name:");
             grid.add(archName, 0, 4);
 
@@ -146,6 +189,7 @@ public class ProjectInfoWindow {
          *  info.
          */
 
+            /*
         Label archBox = new Label("Architect List:");
         final ChoiceBox<String> architect = new ChoiceBox<>(FXCollections.observableArrayList(
                 "ASD|SKY", "Freespace Architects",
@@ -166,6 +210,8 @@ public class ProjectInfoWindow {
             @Override
             public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
 
+
+                /*
                 switch (newValue.intValue()) {
 
                     case 0:
@@ -251,9 +297,13 @@ public class ProjectInfoWindow {
                         aAdd2.setText("Atlanta, GA 30318");
                         archPhoneField.setText("(404)651-6075");
                         break;
+
                 }
+
+
             }
         });
+
 
 
         /*-------------------------------------------------------
@@ -261,6 +311,7 @@ public class ProjectInfoWindow {
          *  info.
          */
 
+            /*
         Label gcBox = new Label("General Contractor List:");
         final ChoiceBox<String> genContractor = new ChoiceBox<>(FXCollections.observableArrayList(
                 "Balfour Beatty", "Batson-Cook", "Brasfield & Gorrie", "DPR Construction", "Van Winkle Construction", "Hoar Construction", "Gay Construction", "Anverse, Inc")
@@ -338,6 +389,7 @@ public class ProjectInfoWindow {
          *  info.
          */
 
+            /*
         Label engBox = new Label("Engineer List:");
         final ChoiceBox<String> engineer = new ChoiceBox<>(FXCollections.observableArrayList(
                 "Stephenson Engineering, Inc",
@@ -368,6 +420,8 @@ public class ProjectInfoWindow {
                 }
             }
         });
+
+             */
 
         Label colorLabel = new Label();
         colorLabel.setText("Choose the highlighter color");
@@ -457,6 +511,7 @@ public class ProjectInfoWindow {
         hbBtn.getChildren().add(nextButton);
         grid.add(hbBtn, 1, 16);
 
+        /*
         Button chooseImage = new Button("Choose an Image");
         HBox chooseImageBox = new HBox(10);
         chooseImageBox.setAlignment(Pos.BOTTOM_LEFT);
@@ -479,6 +534,25 @@ public class ProjectInfoWindow {
             }
 
         });
+
+         */
+
+/*
+
+        chooseProfileBox.getSelectionModel().selectedIndexProperty().addListener(new ChangeListener<Number>() {
+            @Override
+            public void changed(ObservableValue<? extends Number> observable, Number oldValue, Number newValue) {
+
+                List<String> chosenProfile = profileList.get(newValue.intValue());
+
+                //imagePath.setText(chosenProfile.get(4));
+
+            }
+        });
+
+ */
+
+
 
         /*-------------------------------------------------------
          *  Add Button to load project info that was entered on
@@ -503,49 +577,41 @@ public class ProjectInfoWindow {
             File file = directoryChooser.showDialog(window);
 
             if(file != null) {
-                String[] savedInfo = new String[23];
+                List<List<String>> savedInfo = new ArrayList<>();
                 try {
                     File infoSave = new File(file + "\\ProjectInfo.ser");
                     savedInfo = loadProjectInfo(infoSave);
-                    ;
+
                 } catch (NullPointerException saveNotFound) {
                     System.err.println("File not found");
                 }
 
-                pnField.setText(savedInfo[0]);
-                pAdd1.setText(savedInfo[1]);
-                pAdd2.setText(savedInfo[2]);
-                archNameField.setText(savedInfo[3]);
-                aAdd1.setText(savedInfo[4]);
-                aAdd2.setText(savedInfo[5]);
-                archPhoneField.setText(savedInfo[6]);
-                gcNameField.setText(savedInfo[7]);
-                gAdd1.setText(savedInfo[8]);
-                gAdd2.setText(savedInfo[9]);
-                gcPhoneField.setText(savedInfo[10]);
-                engNameField.setText(savedInfo[19]);
-                eAdd1.setText(savedInfo[20]);
-                eAdd2.setText(savedInfo[21]);
-                engPhoneField.setText(savedInfo[22]);
-                imagePath.setText(savedInfo[11]);
-                if(savedInfo[12] != null) {
-                    if (!savedInfo[12].equals("")) {
+                //chosenProfile = savedInfo.get(2);
+                //chooseProfileBox.setValue(chosenProfile.get(2));
+
+                pnField.setText(savedInfo.get(0).get(0));
+                pAdd1.setText(savedInfo.get(0).get(1));
+                pAdd2.setText(savedInfo.get(0).get(2));
+
+                if(savedInfo.get(1).get(0) != null) {
+                    System.out.println(savedInfo.get(1).get(0));
+                    if (!savedInfo.get(1).get(0).equals("")) {
                         dateCheck.setSelected(true);
-                        date = savedInfo[12];
+                        date = savedInfo.get(1).get(0);
                         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MM/dd/yyyy");
                         LocalDate localDateLoad = LocalDate.parse(date, formatter);
                         datePick.setValue(localDateLoad);
                     }
                 }
-                if(savedInfo[13] != null) {
-                    if (!savedInfo[13].equals("")) {
-                        volume = savedInfo[13];
+                if(savedInfo.get(1).get(1) != null) {
+                    if (!savedInfo.get(1).get(1).equals("")) {
+                        volume = savedInfo.get(1).get(1);
                         volumeCheck.setSelected(true);
                         volumeText.setText(volume);
                     }
                 }
-                if(savedInfo[14] != null) {
-                    if(savedInfo[14].equals("true")) {
+                if(savedInfo.get(1).get(2) != null) {
+                    if(savedInfo.get(1).get(2).equals("true")) {
                         pageNumbers = true;
                         pageNumbersCheck.setSelected(true);
                     } else {
@@ -553,15 +619,15 @@ public class ProjectInfoWindow {
                         pageNumbersCheck.setSelected(false);
                     }
                 }
-                if(savedInfo[15] != null) {
-                    rgbText = savedInfo[15];
+                if(savedInfo.get(1).get(3) != null) {
+                    rgbText = savedInfo.get(1).get(3);
                     red = Integer.parseInt(rgbText.substring(0,rgbText.indexOf(" ")));
                     green = Integer.parseInt(rgbText.substring(rgbText.indexOf(" ")+1,rgbText.lastIndexOf(" ")));
                     blue = Integer.parseInt(rgbText.substring(rgbText.lastIndexOf(" ")+1));
                     colorPicker.setValue(Color.rgb(red, green, blue));
                 }
-                if(savedInfo[16] != null) {
-                    removeMembersText = savedInfo[16];
+                if(savedInfo.get(1).get(4) != null) {
+                    removeMembersText = savedInfo.get(1).get(4);
                     if(removeMembersText.equals("true")) {
                         removeMembers = true;
                         memberCheck.setSelected(true);
@@ -570,8 +636,8 @@ public class ProjectInfoWindow {
                         memberCheck.setSelected(false);
                     }
                 }
-                if(savedInfo[17] != null) {
-                    removeMainContentsText = savedInfo[17];
+                if(savedInfo.get(1).get(5) != null) {
+                    removeMainContentsText = savedInfo.get(1).get(5);
                     if(removeMainContentsText.equals("true")) {
                         removeMainContents = true;
                         mainContentsCheck.setSelected(true);
@@ -580,8 +646,8 @@ public class ProjectInfoWindow {
                         mainContentsCheck.setSelected(false);
                     }
                 }
-                if(savedInfo[18] != null) {
-                    operationAndMainText = savedInfo[18];
+                if(savedInfo.get(1).get(6) != null) {
+                    operationAndMainText = savedInfo.get(1).get(6);
                     if(operationAndMainText.equals("true")) {
                         operationAndMain = true;
                         operationAndMainCheck.setSelected(true);
@@ -595,19 +661,7 @@ public class ProjectInfoWindow {
                 job = pnField.getText();
                 jobAdd1 = pAdd1.getText();
                 jobAdd2 = pAdd2.getText();
-                architectName = archNameField.getText();
-                architectAdd1 = aAdd1.getText();
-                architectAdd2 = aAdd2.getText();
-                architectPhone = archPhoneField.getText();
-                genConName = gcNameField.getText();
-                genConAdd1 = gAdd1.getText();
-                genConAdd2 = gAdd2.getText();
-                genConPhone = gcPhoneField.getText();
-                engineerName = engNameField.getText();
-                engineerAdd1 = eAdd1.getText();
-                engineerAdd2 = eAdd2.getText();
-                engineerPhone = engPhoneField.getText();
-                imgPath = imagePath.getText();
+
                 date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));
                 if(volumeCheck.isSelected()){volume = volumeText.getText();}
 
@@ -621,6 +675,9 @@ public class ProjectInfoWindow {
 
         nextButton.setOnAction(e -> {
 
+            //imgPath = chosenProfile.get(0);
+
+            /*
             job = pnField.getText();
             jobAdd1 = pAdd1.getText();
             jobAdd2 = pAdd2.getText();
@@ -637,6 +694,12 @@ public class ProjectInfoWindow {
             engineerAdd2 = eAdd2.getText();
             engineerPhone = engPhoneField.getText();
             imgPath = imagePath.getText();
+
+             */
+            job = pnField.getText();
+            jobAdd1 = pAdd1.getText();
+            jobAdd2 = pAdd2.getText();
+
             if(dateCheck.isSelected()){date = datePick.getValue().format(DateTimeFormatter.ofPattern("MM/dd/yyyy"));} else {date = "";}
             if(volumeCheck.isSelected()){volume = volumeText.getText();} else {volume = "";}
             if(pageNumbersCheck.isSelected()){pageNumbersText = "true";} else {pageNumbersText = "false";}
@@ -645,34 +708,34 @@ public class ProjectInfoWindow {
             if(mainContentsCheck.isSelected()){removeMainContentsText = "true"; removeMainContents = true;} else {removeMainContentsText = "false"; removeMainContents = false;}
             if (operationAndMainCheck.isSelected()) { operationAndMainText = "true"; operationAndMain = true;} else {operationAndMainText = "false"; operationAndMain = false;}
 
-            String[] savedInfo = new String[23];
-            savedInfo[0] = pnField.getText();
-            savedInfo[1] = pAdd1.getText();
-            savedInfo[2] = pAdd2.getText();
-            savedInfo[3] = archNameField.getText();
-            savedInfo[4] = aAdd1.getText();
-            savedInfo[5] = aAdd2.getText();
-            savedInfo[6] = archPhoneField.getText();
-            savedInfo[7] = gcNameField.getText();
-            savedInfo[8] = gAdd1.getText();
-            savedInfo[9] = gAdd2.getText();
-            savedInfo[10] = gcPhoneField.getText();
-            savedInfo[11] = imagePath.getText();
-            savedInfo[12] = date;
-            savedInfo[13] = volume;
-            savedInfo[14] = pageNumbersText;
-            savedInfo[15] = rgbText;
-            savedInfo[16] = removeMembersText;
-            savedInfo[17] = removeMainContentsText;
-            savedInfo[18] = operationAndMainText;
-            savedInfo[19] = engineerName;
-            savedInfo[20] = engineerAdd1;
-            savedInfo[21] = engineerAdd2;
-            savedInfo[22] = engineerPhone;
+            List<String> projectInfo = new ArrayList<>(){};
+            projectInfo.add(job);
+            projectInfo.add(jobAdd1);
+            projectInfo.add(jobAdd2);
+
+            List<String> optionInfo = new ArrayList<>(){};
+            optionInfo.add(date);
+            optionInfo.add(volume);
+            optionInfo.add(pageNumbersText);
+            optionInfo.add(rgbText);
+            optionInfo.add(removeMembersText);
+            optionInfo.add(removeMainContentsText);
+            optionInfo.add(operationAndMainText);
+
+            List<List<String>> savedInfo = new ArrayList<>();
+
+            savedInfo.add(projectInfo);
+            savedInfo.add(optionInfo);
+            //savedInfo.add(chosenProfile);
 
             saveProjectInfo(savedInfo);
 
-            SubGenApp.createScene1();
+
+            if(removeMembers) {
+                SubGenApp.createScene1();
+            } else {
+                SubGenApp.createMemberScene();
+            }
         });
 
         return grid;
